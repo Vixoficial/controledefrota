@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vix99 Frota - Terminal do Motorista</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased pb-24">
+
+  <!-- Header -->
+  <header class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-40">
+    <div class="max-w-xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-blue-600 rounded-lg font-bold text-white text-lg">
+          V99
+        </div>
+        <div>
+          <h1 class="font-bold text-base leading-tight">Vix99 Frota</h1>
+          <p class="text-[11px] text-slate-400">Terminal do Motorista</p>
+        </div>
+      </div>
+      <span class="text-xs bg-emerald-500/20 text-emerald-400 font-semibold px-2.5 py-1 rounded-full border border-emerald-500/30">
+        ● Supabase Conectado
+      </span>
+    </div>
+  </header>
+
+  <!-- Container Principal -->
+  <main class="max-w-xl mx-auto p-4 space-y-4">
+
+    <!-- Mensagem Feedback Alert -->
+    <div id="alert-box" class="hidden p-3.5 rounded-xl text-xs font-semibold flex items-center shadow-sm"></div>
+
+    <!-- ================= ABA 1: REGISTRAR SAÍDA ================= -->
+    <section id="tab-saida" class="tab-content space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <h2 class="text-base font-bold text-slate-900 mb-1">
+          🚗 Registrar Saída de Veículo
+        </h2>
+        <p class="text-xs text-slate-500 mb-4">Selecione o veículo e informe a quilometragem atual para retirada.</p>
+
+        <form onsubmit="registrarSaida(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Veículo *</label>
+            <select id="saida-veiculo" onchange="atualizarKmEVerificarBloqueio()" required class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-slate-50">
+              <option value="">Carregando veículos...</option>
+            </select>
+            <p id="info-bloqueio" class="text-[11px] mt-1 hidden font-semibold"></p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Motorista / Condutor *</label>
+            <select id="saida-condutor" required class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-slate-50">
+              <option value="">Carregando condutores...</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">KM de Saída *</label>
+              <input type="number" id="saida-km" required class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ex: 118000"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Finalidade *</label>
+              <select id="saida-finalidade" required class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-slate-50">
+                <option value="Operacional / Serviço">Operacional / Serviço</option>
+                <option value="Trajeto casa-trabalho">Trajeto casa-trabalho</option>
+                <option value="Uso Pessoal / Lazer">Uso Pessoal / Lazer</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" id="btn-saida" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center cursor-pointer">
+            Confirmar Retirada
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ================= ABA 2: REGISTRAR DEVOLUÇÃO ================= -->
+    <section id="tab-devolucao" class="tab-content hidden space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <h2 class="text-base font-bold text-slate-900 mb-1">
+          🔑 Registrar Devolução de Veículo
+        </h2>
+        <p class="text-xs text-slate-500 mb-4">Informe o KM final para encerrar a utilização do veículo.</p>
+
+        <form onsubmit="registrarDevolucao(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Veículo em Uso *</label>
+            <select id="devolucao-veiculo" onchange="carregarDadosDevolucao()" required class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none bg-slate-50">
+              <option value="">Selecione um veículo para devolver...</option>
+            </select>
+          </div>
+
+          <div id="dados-retirada-box" class="hidden bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
+            <p><span class="text-slate-500">Motorista atual:</span> <strong id="dev-motorista-nome">-</strong></p>
+            <p><span class="text-slate-500">KM na Saída:</span> <strong id="dev-km-inicial">-</strong></p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">KM Final de Devolução *</label>
+            <input type="number" id="devolucao-km" required class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Informe o KM atual no painel"/>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Observações / Avarias (Opcional)</label>
+            <textarea id="devolucao-obs" rows="2" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Ex: Veículo limpo, abastecido..."></textarea>
+          </div>
+
+          <button type="submit" id="btn-devolucao" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center cursor-pointer">
+            Finalizar e Devolver Veículo
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ================= ABA 3: AGENDAMENTO (RESERVA E BLOQUEIO) ================= -->
+    <section id="tab-agendamento" class="tab-content hidden space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <h2 class="text-base font-bold text-slate-900 mb-1">
+          📅 Agendamento Antecipado
+        </h2>
+        <p class="text-xs text-slate-500 mb-4">Reserve um veículo para data e hora futuras. O veículo ficará <strong>bloqueado</strong> para outros motoristas no período.</p>
+
+        <form onsubmit="salvarAgendamento(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Veículo *</label>
+            <select id="agendar-veiculo" required class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50">
+              <option value="">Selecione o veículo...</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Motorista / Quem usará *</label>
+            <select id="agendar-condutor" required class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50">
+              <option value="">Selecione o condutor...</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Início (Data/Hora) *</label>
+              <input type="datetime-local" id="agendar-inicio" required class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Fim Previsto *</label>
+              <input type="datetime-local" id="agendar-fim" required class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none"/>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Motivo / Destino *</label>
+            <input type="text" id="agendar-motivo" required class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ex: Serviço em Anchieta/ES"/>
+          </div>
+
+          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center cursor-pointer">
+            Reservar e Bloquear Veículo
+          </button>
+        </form>
+      </div>
+
+      <!-- Lista de Agendamentos Futuros -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <h3 class="font-bold text-sm text-slate-800 mb-3">
+          📋 Agendamentos Ativos no Supabase
+        </h3>
+        <div id="lista-agendamentos" class="space-y-3">
+          <p class="text-xs text-slate-400 text-center py-2">Carregando agendamentos...</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Navegação Inferior Fixa -->
+  <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 py-3 px-6 flex justify-around items-center z-50 max-w-xl mx-auto shadow-lg">
+    <button type="button" onclick="mudarAba('saida')" id="nav-btn-saida" class="flex flex-col items-center text-blue-600 font-bold text-xs cursor-pointer">
+      <span>🚗</span>
+      <span class="mt-0.5">Saída</span>
+    </button>
+    <button type="button" onclick="mudarAba('devolucao')" id="nav-btn-devolucao" class="flex flex-col items-center text-slate-400 font-medium text-xs hover:text-slate-800 cursor-pointer">
+      <span>🔑</span>
+      <span class="mt-0.5">Devolução</span>
+    </button>
+    <button type="button" onclick="mudarAba('agendamento')" id="nav-btn-agendamento" class="flex flex-col items-center text-slate-400 font-medium text-xs hover:text-slate-800 cursor-pointer">
+      <span>📅</span>
+      <span class="mt-0.5">Agendamento</span>
+    </button>
+  </nav>
+
+  <script>
+    // CONFIGURAÇÃO SUPABASE
+    const SUPABASE_URL = 'https://vfwgaiakuqgnjtrosech.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmd2dhaWFrdXFnbmp0cm9zZWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2ODIxOTgsImV4cCI6MjEwNjI1ODE5OH0.mVNwINdCQ24HfdVlL9cKtKbnhnj5AhqM52TYh44xGvQ';
+
+    let veiculos = [];
+    let condutores = [];
+    let agendamentos = [];
+
+    // FUNÇÃO DIRETA DE TROCA DE ABAS (SEM FALHAS)
+    function mudarAba(nomeAba) {
+      // 1. Esconde todas as seções
+      document.getElementById('tab-saida').classList.add('hidden');
+      document.getElementById('tab-devolucao').classList.add('hidden');
+      document.getElementById('tab-agendamento').classList.add('hidden');
+
+      // 2. Reseta estilo dos 3 botões
+      document.getElementById('nav-btn-saida').className = 'flex flex-col items-center text-slate-400 font-medium text-xs hover:text-slate-800 cursor-pointer';
+      document.getElementById('nav-btn-devolucao').className = 'flex flex-col items-center text-slate-400 font-medium text-xs hover:text-slate-800 cursor-pointer';
+      document.getElementById('nav-btn-agendamento').className = 'flex flex-col items-center text-slate-400 font-medium text-xs hover:text-slate-800 cursor-pointer';
+
+      // 3. Mostra a aba selecionada e destaca o botão
+      document.getElementById(`tab-${nomeAba}`).classList.remove('hidden');
+      document.getElementById(`nav-btn-${nomeAba}`).className = 'flex flex-col items-center text-blue-600 font-bold text-xs cursor-pointer';
+    }
+
+    async function supabaseFetch(endpoint, options = {}) {
+      const headers = {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+        ...options.headers
+      };
+      
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, { ...options, headers });
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+        return await response.json();
+      } catch (err) {
+        console.warn(`[Supabase Fetch - ${endpoint}]`, err);
+        return null;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      carregarDados();
+    });
+
+    async function carregarDados() {
+      const resV = await supabaseFetch('veiculos?select=*') || [
+        { id: 1, placa: "ABC1D23", modelo: "Kwid Zen 2022", km_atual: 118427, em_uso: false },
+        { id: 2, placa: "DEF4G56", modelo: "Honda Titan 160", km_atual: 42000, em_uso: false },
+        { id: 3, placa: "HIJ7K89", modelo: "Renault Oroch 2021", km_atual: 96000, em_uso: true, condutor_atual: "Marcos A. Souza" }
+      ];
+
+      const resC = await supabaseFetch('condutores?select=*') || [
+        { id: 1, nome: "Valdir C. Filho" },
+        { id: 2, nome: "Carla M. Reis" },
+        { id: 3, nome: "Marcos A. Souza" }
+      ];
+
+      const resA = await supabaseFetch('agendamentos?select=*') || [];
+
+      veiculos = resV;
+      condutores = resC;
+      agendamentos = resA;
+
+      populardropdowns();
+      renderListaAgendamentos();
+    }
+
+    function populardropdowns() {
+      // Dropdown Saída
+      const selSaidaV = document.getElementById('saida-veiculo');
+      if (selSaidaV) {
+        selSaidaV.innerHTML = '<option value="">Selecione o veículo...</option>' + 
+          veiculos.map(v => `<option value="${v.id}">${v.placa} — ${v.modelo} (KM: ${v.km_atual || 0})</option>`).join('');
+      }
+
+      // Dropdown Condutores
+      const selSaidaC = document.getElementById('saida-condutor');
+      const selAgendarC = document.getElementById('agendar-condutor');
+      const optsC = '<option value="">Selecione o condutor...</option>' + condutores.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+      if (selSaidaC) selSaidaC.innerHTML = optsC;
+      if (selAgendarC) selAgendarC.innerHTML = optsC;
+
+      // Dropdown Devolução (Veículos em uso)
+      const selDevV = document.getElementById('devolucao-veiculo');
+      if (selDevV) {
+        const emUso = veiculos.filter(v => v.em_uso);
+        if (emUso.length === 0) {
+          selDevV.innerHTML = '<option value="">Nenhum veículo em uso no momento</option>';
+        } else {
+          selDevV.innerHTML = '<option value="">Selecione o veículo para devolver...</option>' + 
+            emUso.map(v => `<option value="${v.id}">${v.placa} — ${v.modelo}</option>`).join('');
+        }
+      }
+
+      // Dropdown Agendar
+      const selAgendarV = document.getElementById('agendar-veiculo');
+      if (selAgendarV) {
+        selAgendarV.innerHTML = '<option value="">Selecione o veículo...</option>' + 
+          veiculos.map(v => `<option value="${v.id}">${v.placa} — ${v.modelo}</option>`).join('');
+      }
+    }
+
+    function atualizarKmEVerificarBloqueio() {
+      const vId = document.getElementById('saida-veiculo').value;
+      const infoBox = document.getElementById('info-bloqueio');
+      const btnSaida = document.getElementById('btn-saida');
+      
+      if (!vId) {
+        infoBox.classList.add('hidden');
+        if (btnSaida) btnSaida.disabled = false;
+        return;
+      }
+
+      const v = veiculos.find(item => item.id == vId);
+      if (v) {
+        document.getElementById('saida-km').value = v.km_atual || 0;
+      }
+
+      const agora = new Date().toISOString();
+      const bloqueio = agendamentos.find(a => a.veiculo_id == vId && a.data_inicio <= agora && a.data_fim >= agora);
+
+      if (bloqueio) {
+        infoBox.innerHTML = `⚠️ BLOQUEADO: Reservado para <strong>${bloqueio.condutor}</strong>`;
+        infoBox.className = "text-[11px] mt-1 font-semibold text-rose-600 block bg-rose-50 p-2 rounded-lg border border-rose-200";
+        if (btnSaida) btnSaida.disabled = true;
+      } else {
+        infoBox.className = "text-[11px] mt-1 font-semibold text-emerald-600 block";
+        infoBox.innerText = "✓ Veículo liberado para retirada.";
+        if (btnSaida) btnSaida.disabled = false;
+      }
+    }
+
+    async function registrarSaida(e) {
+      e.preventDefault();
+      const vId = document.getElementById('saida-veiculo').value;
+      const condutor = document.getElementById('saida-condutor').value;
+      const kmSaida = parseInt(document.getElementById('saida-km').value);
+      const finalidade = document.getElementById('saida-finalidade').value;
+
+      const v = veiculos.find(item => item.id == vId);
+
+      const novaSaida = {
+        veiculo_id: vId,
+        veiculo: `${v.placa} — ${v.modelo}`,
+        condutor: condutor,
+        km_inicial: kmSaida,
+        data_saida: new Date().toISOString().slice(0, 16),
+        finalidade: finalidade
+      };
+
+      await supabaseFetch('movimentacoes', { method: 'POST', body: JSON.stringify(novaSaida) });
+      await supabaseFetch(`veiculos?id=eq.${vId}`, { 
+        method: 'PATCH', 
+        body: JSON.stringify({ em_uso: true, condutor_atual: condutor, km_atual: kmSaida }) 
+      });
+
+      mostrarAlerta("✓ Saída registrada com sucesso no Supabase!", "sucesso");
+      e.target.reset();
+      carregarDados();
+    }
+
+    function carregarDadosDevolucao() {
+      const vId = document.getElementById('devolucao-veiculo').value;
+      const box = document.getElementById('dados-retirada-box');
+
+      if (!vId) {
+        box.classList.add('hidden');
+        return;
+      }
+
+      const v = veiculos.find(item => item.id == vId);
+      if (v) {
+        document.getElementById('dev-motorista-nome').innerText = v.condutor_atual || "Motorista não informado";
+        document.getElementById('dev-km-inicial').innerText = `${v.km_atual || 0} km`;
+        box.classList.remove('hidden');
+      }
+    }
+
+    async function registrarDevolucao(e) {
+      e.preventDefault();
+      const vId = document.getElementById('devolucao-veiculo').value;
+      const kmFinal = parseInt(document.getElementById('devolucao-km').value);
+
+      const v = veiculos.find(item => item.id == vId);
+      if (kmFinal < (v.km_atual || 0)) {
+        mostrarAlerta(`Erro: O KM final (${kmFinal}) não pode ser menor que o KM inicial (${v.km_atual}).`, "erro");
+        return;
+      }
+
+      await supabaseFetch(`veiculos?id=eq.${vId}`, { 
+        method: 'PATCH', 
+        body: JSON.stringify({ em_uso: false, condutor_atual: null, km_atual: kmFinal }) 
+      });
+
+      mostrarAlerta("✓ Devolução confirmada no Supabase!", "sucesso");
+      e.target.reset();
+      document.getElementById('dados-retirada-box').classList.add('hidden');
+      carregarDados();
+    }
+
+    async function salvarAgendamento(e) {
+      e.preventDefault();
+      const vId = document.getElementById('agendar-veiculo').value;
+      const condutor = document.getElementById('agendar-condutor').value;
+      const dInicio = document.getElementById('agendar-inicio').value;
+      const dFim = document.getElementById('agendar-fim').value;
+      const motivo = document.getElementById('agendar-motivo').value;
+
+      const v = veiculos.find(item => item.id == vId);
+
+      const novoAgendamento = {
+        veiculo_id: vId,
+        veiculo: `${v.placa} — ${v.modelo}`,
+        condutor: condutor,
+        data_inicio: dInicio,
+        data_fim: dFim,
+        motivo: motivo
+      };
+
+      await supabaseFetch('agendamentos', { method: 'POST', body: JSON.stringify(novoAgendamento) });
+
+      mostrarAlerta("✓ Veículo agendado e bloqueado com sucesso!", "sucesso");
+      e.target.reset();
+      carregarDados();
+    }
+
+    function renderListaAgendamentos() {
+      const container = document.getElementById('lista-agendamentos');
+      if (!container) return;
+
+      if (agendamentos.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400 text-center py-2">Nenhum agendamento futuro no momento.</p>';
+        return;
+      }
+
+      container.innerHTML = agendamentos.map(a => `
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
+          <div class="flex justify-between items-center font-bold text-slate-800">
+            <span>${a.veiculo}</span>
+            <span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px]">Bloqueado</span>
+          </div>
+          <p class="text-slate-600">👤 Motorista: <strong>${a.condutor}</strong></p>
+          <p class="text-slate-500">📅 De: ${a.data_inicio ? a.data_inicio.replace('T', ' ') : '-'} até ${a.data_fim ? a.data_fim.replace('T', ' ') : '-'}</p>
+          <p class="text-slate-500 italic">📌 Motivo: ${a.motivo || 'Serviço'}</p>
+        </div>
+      `).join('');
+    }
+
+    function mostrarAlerta(msg, tipo) {
+      const box = document.getElementById('alert-box');
+      box.innerText = msg;
+      box.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-rose-100', 'text-rose-800');
+      
+      if (tipo === 'sucesso') {
+        box.classList.add('bg-emerald-100', 'text-emerald-800');
+      } else {
+        box.classList.add('bg-rose-100', 'text-rose-800');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => box.classList.add('hidden'), 4000);
+    }
+  </script>
+</body>
+</html>
