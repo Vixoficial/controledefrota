@@ -1059,6 +1059,7 @@
   let multas = [];
   let sinistros = [];
 
+  // Função genérica de Fetch para o Supabase
   async function supabaseFetch(endpoint, options = {}) {
     const method = options.method || 'GET';
     const headers = {
@@ -1073,7 +1074,6 @@
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`[Supabase Error ${response.status}]`, errorText);
-        alert(`Erro na comunicação com o banco: ${response.statusText}`);
         return null;
       }
       
@@ -1083,30 +1083,64 @@
       
       return await response.json();
     } catch (err) {
-      console.error(`[Supabase Fetch Fallback - ${endpoint}]`, err);
-      alert('Erro de conexão com o banco de dados Supabase.');
+      console.error(`[Supabase Fetch Error - ${endpoint}]`, err);
       return null;
     }
   }
 
+  // EXECUÇÃO DO LOGIN
   function executarLogin() {
-    const u = document.getElementById('login-user').value.trim();
-    const p = document.getElementById('login-pass').value.trim();
+    const userEl = document.getElementById('login-user');
+    const passEl = document.getElementById('login-pass');
+    const loginScreen = document.getElementById('login-screen');
+    const appScreen = document.getElementById('app-screen');
+    const loginError = document.getElementById('login-error');
 
-    if ((u === 'admin' && p === 'admin123') || u !== '') {
-      document.getElementById('login-screen').classList.add('hidden');
-      document.getElementById('app-screen').classList.remove('hidden');
-      document.getElementById('app-screen').classList.add('flex');
+    if (!userEl || !passEl) {
+      console.error("Elementos do formulário de login não encontrados.");
+      return;
+    }
+
+    const u = userEl.value.trim();
+    const p = passEl.value.trim();
+
+    // Permite login se for admin/admin123 ou qualquer utilizador preenchido
+    if ((u === 'admin' && p === 'admin123') || (u !== '' && p !== '')) {
+      if (loginError) loginError.classList.add('hidden');
+      if (loginScreen) loginScreen.classList.add('hidden');
+      if (appScreen) {
+        appScreen.classList.remove('hidden');
+        appScreen.classList.add('flex');
+      }
       carregarDadosDoSupabase();
     } else {
-      document.getElementById('login-error').classList.remove('hidden');
+      if (loginError) loginError.classList.remove('hidden');
     }
   }
 
   function handleLogout() {
-    document.getElementById('app-screen').classList.add('hidden');
-    document.getElementById('login-screen').classList.remove('hidden');
+    const loginScreen = document.getElementById('login-screen');
+    const appScreen = document.getElementById('app-screen');
+    if (appScreen) appScreen.classList.add('hidden');
+    if (loginScreen) loginScreen.classList.remove('hidden');
   }
+
+  // Permite acionar o login ao pressionar 'Enter' nos campos de texto
+  document.addEventListener('DOMContentLoaded', () => {
+    const passEl = document.getElementById('login-pass');
+    const userEl = document.getElementById('login-user');
+    
+    if (passEl) {
+      passEl.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') executarLogin();
+      });
+    }
+    if (userEl) {
+      userEl.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') executarLogin();
+      });
+    }
+  });
 
   async function carregarDadosDoSupabase() {
     // 1. Veículos
@@ -1137,7 +1171,6 @@
     const dadosHistorico = await supabaseFetch('movimentacoes?select=*');
     historico = Array.isArray(dadosHistorico) ? dadosHistorico : [];
 
-    if (typeof lucide !== 'undefined') lucide.createIcons();
     renderAll();
     populateDropdowns();
   }
@@ -1158,7 +1191,9 @@
   }
 
   function renderKPIs() {
-    document.getElementById('kpi-cards').innerHTML = `
+    const el = document.getElementById('kpi-cards');
+    if (!el) return;
+    el.innerHTML = `
       <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Multas Pendentes</p><h4 class="text-xl font-bold text-amber-600">${multas.filter(m => m.situacao !== 'Concluído').length}</h4></div>
       <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">CNH Vencendo</p><h4 class="text-xl font-bold text-emerald-600">0</h4></div>
       <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Veículos Pendência</p><h4 class="text-xl font-bold text-rose-600">${veiculos.filter(v => v.status !== 'Ok').length}</h4></div>
@@ -1169,7 +1204,9 @@
   }
 
   function renderResumoTable() {
-    document.getElementById('tb-resumo-corpo').innerHTML = veiculos.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum veículo cadastrado.</td></tr>' : veiculos.map(v => `
+    const el = document.getElementById('tb-resumo-corpo');
+    if (!el) return;
+    el.innerHTML = veiculos.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum veículo cadastrado.</td></tr>' : veiculos.map(v => `
       <tr class="hover:bg-slate-50 transition">
         <td class="p-2 font-semibold text-slate-800">${v.placa} — ${v.modelo}</td>
         <td class="p-2 text-slate-500">${v.tipo}</td>
@@ -1183,7 +1220,9 @@
   }
 
   function renderFrotaTable() {
-    document.getElementById('tb-frota-corpo').innerHTML = veiculos.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum veículo cadastrado.</td></tr>' : veiculos.map(v => `
+    const el = document.getElementById('tb-frota-corpo');
+    if (!el) return;
+    el.innerHTML = veiculos.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum veículo cadastrado.</td></tr>' : veiculos.map(v => `
       <tr class="hover:bg-slate-50 transition">
         <td class="p-2 font-semibold text-slate-800">${v.placa} <br/><span class="text-[10px] text-slate-400">${v.modelo}</span></td>
         <td class="p-2 text-right font-mono">R$ ${(v.fipe || 0).toLocaleString('pt-BR')}</td>
@@ -1200,7 +1239,9 @@
   }
 
   function renderCondutoresTable() {
-    document.getElementById('tb-condutores-corpo').innerHTML = condutores.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum condutor cadastrado.</td></tr>' : condutores.map(c => `
+    const el = document.getElementById('tb-condutores-corpo');
+    if (!el) return;
+    el.innerHTML = condutores.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum condutor cadastrado.</td></tr>' : condutores.map(c => `
       <tr class="hover:bg-slate-50 transition">
         <td class="p-2 font-semibold text-slate-800">${c.nome}</td>
         <td class="p-2 font-mono">${c.cnh} <span class="bg-slate-200 px-1 py-0.5 rounded text-[10px]">${c.cat || 'B'}</span></td>
@@ -1217,7 +1258,9 @@
   }
 
   function renderAbastecimentoTable() {
-    document.getElementById('tb-abastecimentos-corpo').innerHTML = abastecimentos.length === 0 ? '<tr><td colspan="10" class="p-4 text-center text-slate-400">Nenhum abastecimento registrado.</td></tr>' : abastecimentos.map(a => `
+    const el = document.getElementById('tb-abastecimentos-corpo');
+    if (!el) return;
+    el.innerHTML = abastecimentos.length === 0 ? '<tr><td colspan="10" class="p-4 text-center text-slate-400">Nenhum abastecimento registrado.</td></tr>' : abastecimentos.map(a => `
       <tr class="hover:bg-slate-50 transition">
         <td class="p-2 font-mono text-slate-600">${a.data}</td>
         <td class="p-2 font-semibold text-slate-800">${a.veiculo}</td>
@@ -1236,7 +1279,9 @@
   }
 
   function renderManutencaoTable() {
-    document.getElementById('tb-manutencao-corpo').innerHTML = manutencoes.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhuma manutenção registrada.</td></tr>' : manutencoes.map(m => `
+    const el = document.getElementById('tb-manutencao-corpo');
+    if (!el) return;
+    el.innerHTML = manutencoes.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhuma manutenção registrada.</td></tr>' : manutencoes.map(m => `
       <tr class="hover:bg-slate-50 transition">
         <td class="p-2 font-mono text-slate-600">${m.data}</td>
         <td class="p-2 font-semibold text-slate-800">${m.veiculo}</td>
@@ -1254,7 +1299,9 @@
   }
 
   function renderMultasTable() {
-    document.getElementById('tb-multas-corpo').innerHTML = multas.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhuma multa registrada.</td></tr>' : multas.map(mu => `
+    const el = document.getElementById('tb-multas-corpo');
+    if (!el) return;
+    el.innerHTML = multas.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhuma multa registrada.</td></tr>' : multas.map(mu => `
       <tr class="hover:bg-slate-50 transition">
         <td class="p-2 font-mono text-slate-600">${mu.data}</td>
         <td class="p-2 font-mono text-slate-800 font-semibold">${mu.ait}</td>
@@ -1272,7 +1319,9 @@
   }
 
   function renderSinistrosTable() {
-    document.getElementById('tb-sinistros-corpo').innerHTML = sinistros.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhum sinistro registrado.</td></tr>' : sinistros.map(s => `
+    const el = document.getElementById('tb-sinistros-corpo');
+    if (!el) return;
+    el.innerHTML = sinistros.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhum sinistro registrado.</td></tr>' : sinistros.map(s => `
       <tr class="hover:bg-slate-50 transition">
         <td class="p-2 font-mono text-slate-600">${s.data}</td>
         <td class="p-2 font-semibold text-slate-800">${s.veiculo}</td>
@@ -1290,7 +1339,9 @@
   }
 
   function renderHistoricoTable() {
-    document.getElementById('tb-historico-corpo').innerHTML = historico.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhuma movimentação registrada.</td></tr>' : historico.map(h => {
+    const el = document.getElementById('tb-historico-corpo');
+    if (!el) return;
+    el.innerHTML = historico.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhuma movimentação registrada.</td></tr>' : historico.map(h => {
       const kmInic = h.km_inicial || 0;
       const kmFin = h.km_final || 0;
       return `
@@ -1327,10 +1378,13 @@
 
   function renderRelatorioCondutor() {
     const selEl = document.getElementById('sel-rel-condutor');
+    const el = document.getElementById('rel-condutor-detalhes');
+    if (!el) return;
+
     const nome = selEl ? selEl.value : (condutores[0] ? condutores[0].nome : '');
     const c = condutores.find(item => item.nome === nome) || {};
 
-    document.getElementById('rel-condutor-detalhes').innerHTML = `
+    el.innerHTML = `
       <div class="border-b pb-3 flex justify-between items-center">
         <div>
           <h3 class="text-base font-bold text-slate-900">${c.nome || 'Nenhum condutor selecionado'}</h3>
@@ -1356,7 +1410,9 @@
   }
 
   function renderApuracaoVeiculoTable() {
-    document.getElementById('tb-apuracao-veiculo-corpo').innerHTML = veiculos.length === 0 ? '<tr><td colspan="8" class="p-4 text-center text-slate-400">Nenhum veículo apurado.</td></tr>' : veiculos.map(v => `
+    const el = document.getElementById('tb-apuracao-veiculo-corpo');
+    if (!el) return;
+    el.innerHTML = veiculos.length === 0 ? '<tr><td colspan="8" class="p-4 text-center text-slate-400">Nenhum veículo apurado.</td></tr>' : veiculos.map(v => `
       <tr class="hover:bg-slate-50 transition">
         <td class="p-2 font-semibold text-slate-800">jan/2027 — ${v.placa}</td>
         <td class="p-2 text-right font-mono">0 km</td>
@@ -1377,7 +1433,9 @@
       btn.classList.add('text-slate-400');
     });
 
-    document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+    const activeTab = document.getElementById(`tab-${tabId}`);
+    if (activeTab) activeTab.classList.remove('hidden');
+
     const activeBtn = document.getElementById(`btn-${tabId}`);
     if (activeBtn) {
       activeBtn.classList.add('bg-blue-600', 'text-white');
@@ -1387,7 +1445,8 @@
 
   // MODAIS VEÍCULO
   function openVeiculoModal() {
-    document.getElementById('form-veiculo').reset();
+    const form = document.getElementById('form-veiculo');
+    if (form) form.reset();
     document.getElementById('v-id').value = '';
     document.getElementById('modal-veiculo-titulo').innerText = 'Cadastrar Veículo';
     document.getElementById('modal-veiculo').classList.remove('hidden');
@@ -1438,7 +1497,8 @@
 
   // MODAIS CONDUTOR
   function openCondutorModal() {
-    document.getElementById('form-condutor').reset();
+    const form = document.getElementById('form-condutor');
+    if (form) form.reset();
     document.getElementById('c-id').value = '';
     document.getElementById('modal-condutor-titulo').innerText = 'Cadastrar Condutor';
     document.getElementById('modal-condutor').classList.remove('hidden');
@@ -1487,7 +1547,8 @@
 
   // MODAIS ABASTECIMENTO
   function openAbastecimentoModal() {
-    document.getElementById('form-abastecimento').reset();
+    const form = document.getElementById('form-abastecimento');
+    if (form) form.reset();
     document.getElementById('a-id').value = '';
     document.getElementById('modal-abastecimento').classList.remove('hidden');
   }
@@ -1531,7 +1592,8 @@
 
   // MODAIS MANUTENÇÃO
   function openManutencaoModal() {
-    document.getElementById('form-manutencao').reset();
+    const form = document.getElementById('form-manutencao');
+    if (form) form.reset();
     document.getElementById('m-id').value = '';
     document.getElementById('modal-manutencao').classList.remove('hidden');
   }
@@ -1570,7 +1632,8 @@
 
   // MODAIS MULTAS
   function openMultaModal() {
-    document.getElementById('form-multa').reset();
+    const form = document.getElementById('form-multa');
+    if (form) form.reset();
     document.getElementById('mu-id').value = '';
     document.getElementById('modal-multa').classList.remove('hidden');
   }
@@ -1615,7 +1678,8 @@
 
   // MODAIS SINISTROS
   function openSinistroModal() {
-    document.getElementById('form-sinistro').reset();
+    const form = document.getElementById('form-sinistro');
+    if (form) form.reset();
     document.getElementById('si-id').value = '';
     document.getElementById('modal-sinistro').classList.remove('hidden');
   }
@@ -1652,6 +1716,7 @@
       carregarDadosDoSupabase();
     }
   }
+</script>
 </script>
     // EXPORTAR CSV
     function exportCSV() {
