@@ -1098,64 +1098,39 @@
       document.getElementById('login-screen').classList.remove('hidden');
     }
 
-    async function carregarDadosDoSupabase() {
-      // 1. Veículos
-      const dVeiculos = await supabaseFetch('veiculos?select=*');
-      veiculos = (dVeiculos && dVeiculos.length > 0) ? dVeiculos : [
-        { id: 1, placa: "ABC1D23", modelo: "Kwid Zen 2022", tipo: "Automóvel", fipe: 48000, km_ano: 23813, kml: 13.5, gasto_mensal: 1931.21, custo_km: 0.97, status: "Revisão atrasada", prox_rev: 128000, odometro_atual: 131941, licenciam: "2027-03-20", seguro: "2027-06-15" },
-        { id: 2, placa: "DEF4G56", modelo: "Honda Titan 160 2023", tipo: "Motocicleta", fipe: 16500, km_ano: 18200, kml: 38.0, gasto_mensal: 680.40, custo_km: 0.45, status: "Ok", prox_rev: 55000, odometro_atual: 52531, licenciam: "2027-04-20", seguro: "2027-07-15" },
-        { id: 3, placa: "HIJ7K89", modelo: "Renault Oroch 2021", tipo: "Comercial Leve", fipe: 82000, km_ano: 29500, kml: 10.2, gasto_mensal: 2850.10, custo_km: 1.15, status: "Alinhamento pendente", prox_rev: 125000, odometro_atual: 122427, licenciam: "2027-05-20", seguro: "2027-08-15" },
-        { id: 4, placa: "LMN1P23", modelo: "Fiat Strada 2023", tipo: "Comercial Leve", fipe: 95000, km_ano: 31000, kml: 12.1, gasto_mensal: 2410.00, custo_km: 0.93, status: "Ok", prox_rev: 70000, odometro_atual: 78292, licenciam: "2027-06-20", seguro: "2027-09-15" },
-        { id: 5, placa: "QRS4T56", modelo: "Fiat Uno 2019", tipo: "Automóvel", fipe: 42000, km_ano: 16652, kml: 12.0, gasto_mensal: 1537.00, custo_km: 1.11, status: "Avaria concluída", prox_rev: 160000, odometro_atual: 168652, licenciam: "2027-07-20", seguro: "2027-10-15" },
-        { id: 6, placa: "UVX7Z89", modelo: "BYD Dolphin 2024", tipo: "Elétrico", fipe: 145000, km_ano: 18766, kml: 4.0, gasto_mensal: 2020.00, custo_km: 1.29, status: "Ok", prox_rev: 30000, odometro_atual: 40766, licenciam: "2027-08-20", seguro: "2027-11-15" }
-      ];
+ async function carregarDadosDoSupabase() {
+  // 1. Veículos
+  const dadosVeiculos = await supabaseFetch('veiculos?select=*');
+  veiculos = dadosVeiculos !== null ? dadosVeiculos : [];
 
-      // 2. Condutores
-      const dCondutores = await supabaseFetch('condutores?select=*');
-      condutores = (dCondutores && dCondutores.length > 0) ? dCondutores : [
-        { id: 1, nome: "Valdir C. Filho", cnh: "01234567890", cat: "AB", validade: "2029-03-15", funcao: "Engenheiro Responsável", ear: "Não", trajeto_pct: 50, limite_diario: 40, km_rodado: 37536, horas: 1152, vel_media: 33, consumo: 21.28, multas12m: 0, pontos: 0, gravissimas: 0, limite: 40, valor_multas: 0, sinistros12m: 0, custo_sinistros: 0, risco: "BOM" },
-        { id: 2, nome: "Marcos A. Souza", cnh: "09876543210", cat: "D", validade: "2027-01-22", funcao: "Motorista Operacional", ear: "Sim", trajeto_pct: 50, limite_diario: 40, km_rodado: 23643, horas: 1408, vel_media: 17, consumo: 4.19, multas12m: 1, pontos: 7, gravissimas: 1, limite: 40, valor_multas: 293.47, sinistros12m: 1, custo_sinistros: 0, risco: "BOM" },
-        { id: 3, nome: "Carla M. Reis", cnh: "05544332211", cat: "B", validade: "2028-11-10", funcao: "Supervisora de Campo", ear: "Não", trajeto_pct: 50, limite_diario: 40, km_rodado: 20925, horas: 1024, vel_media: 20, consumo: 15.08, multas12m: 0, pontos: 0, gravissimas: 0, limite: 40, valor_multas: 0, sinistros12m: 1, custo_sinistros: 2500, risco: "BOM" }
-      ];
+  // 2. Condutores
+  const dadosCondutores = await supabaseFetch('condutores?select=*');
+  condutores = dadosCondutores !== null ? dadosCondutores : [];
 
-      // 3. Abastecimentos
-      const dAbast = await supabaseFetch('abastecimentos?select=*');
-      abastecimentos = (dAbast && dAbast.length > 0) ? dAbast : [
-        { id: 1, data: "2027-01-08", veiculo: "ABC1D23 — Kwid Zen 2022", posto: "Posto Ipiranga", combustivel: "Gasolina comum", preco_unit: 6.20, qtd: 69.80, total: 432.76, odometro: 118400, condutor: "Valdir C. Filho", nf: "NF-8821", obs: "Tanque cheio" },
-        { id: 2, data: "2027-01-22", veiculo: "ABC1D23 — Kwid Zen 2022", posto: "Posto Shell", combustivel: "Gasolina comum", preco_unit: 6.20, qtd: 69.80, total: 432.76, odometro: 119200, condutor: "Valdir C. Filho", nf: "NF-8890", obs: "Uso operacional" }
-      ];
+  // 3. Abastecimentos
+  const dadosAbastecimento = await supabaseFetch('abastecimentos?select=*');
+  abastecimentos = dadosAbastecimento !== null ? dadosAbastecimento : [];
 
-      // 4. Manutenções
-      const dManut = await supabaseFetch('manutencoes?select=*');
-      manutencoes = (dManut && dManut.length > 0) ? dManut : [
-        { id: 1, data: "2026-08-12", veiculo: "ABC1D23 — Kwid Zen 2022", odometro: 119604, tipo: "Preventiva (programada)", descricao: "Revisão 110.000 km", oficina: "Oficina Credenciada", valor: 680.00, nf: "NF-4205", prox_rev: 129604, compoe_rkm: "Sim" },
-        { id: 2, data: "2027-02-20", veiculo: "ABC1D23 — Kwid Zen 2022", odometro: 121941, tipo: "Preventiva (programada)", descricao: "Revisão 120.000 km", oficina: "Oficina Credenciada", valor: 740.00, nf: "NF-4206", prox_rev: 131941, compoe_rkm: "Sim" }
-      ];
+  // 4. Manutenções
+  const dadosManutencao = await supabaseFetch('manutencoes?select=*');
+  manutencoes = dadosManutencao !== null ? dadosManutencao : [];
 
-      // 5. Multas
-      const dMultas = await supabaseFetch('multas?select=*');
-      multas = (dMultas && dMultas.length > 0) ? dMultas : [
-        { id: 1, data: "2027-03-18", ait: "AIT70310", veiculo: "ABC1D23 — Kwid Zen 2022", condutor: "Valdir C. Filho", local: "Vitória/ES", descricao: "Velocidade superior em até 20%", gravidade: "Média", pontos: 4, valor: 130.16, situacao: "Indicado ao condutor", pago_por: "Condutor", ressarcir: "Sim", mes_cobranca: "abr/2027" },
-        { id: 2, data: "2027-05-27", ait: "AIT70311", veiculo: "HIJ7K89 — Renault Oroch 2021", condutor: "Marcos A. Souza", local: "Serra/ES", descricao: "Avanço de sinal vermelho", gravidade: "Gravíssima", pontos: 7, valor: 293.47, situacao: "Indicado ao condutor", pago_por: "Condutor", ressarcir: "Sim", mes_cobranca: "jun/2027" }
-      ];
+  // 5. Multas
+  const dadosMultas = await supabaseFetch('multas?select=*');
+  multas = dadosMultas !== null ? dadosMultas : [];
 
-      // 6. Sinistros
-      const dSinistros = await supabaseFetch('sinistros?select=*');
-      sinistros = (dSinistros && dSinistros.length > 0) ? dSinistros : [
-        { id: 1, data: "2027-07-15", veiculo: "QRS4T56 — Fiat Uno 2019", condutor: "Carla M. Reis", tipo: "Colisão", descricao: "Colisão lateral em manobra de estacionamento", culpa: "Própria", prejuizo: 6800.00, franquia: 2500.00, seguro: "Sim", status: "Concluído", ressarcir: 2500.00, mes_cobranca: "ago/2027" }
-      ];
+  // 6. Sinistros
+  const dadosSinistros = await supabaseFetch('sinistros?select=*');
+  sinistros = dadosSinistros !== null ? dadosSinistros : [];
 
-      // 7. Histórico de Deslocamentos
-      const dHist = await supabaseFetch('movimentacoes?select=*');
-      historico = (dHist && dHist.length > 0) ? dHist : [
-        { id: 1, veiculo: "ABC1D23 — Kwid Zen 2022", condutor: "Valdir C. Filho", data_saida: "2027-01-04T07:00", data_devolucao: "2027-01-04T17:40", km_inicial: 118000, km_final: 118427, finalidade: "Trajeto casa-trabalho" },
-        { id: 2, veiculo: "ABC1D23 — Kwid Zen 2022", condutor: "Valdir C. Filho", data_saida: "2027-01-09T07:00", data_devolucao: "2027-01-09T17:40", km_inicial: 118427, km_final: 118827, finalidade: "Operacional / Serviço" }
-      ];
+  // 7. Histórico
+  const dadosHistorico = await supabaseFetch('movimentacoes?select=*');
+  historico = dadosHistorico !== null ? dadosHistorico : [];
 
-      if (typeof lucide !== 'undefined') lucide.createIcons();
-      populateSelectsGlobais();
-      renderAllTables();
-    }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  renderAll();
+  populateDropdowns();
+}
 
     function populateSelectsGlobais() {
       const vOpts = veiculos.map(v => `<option value="${v.placa} — ${v.modelo}">${v.placa} — ${v.modelo}</option>`).join('');
