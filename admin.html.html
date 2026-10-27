@@ -1046,905 +1046,586 @@
   </div>
 
   <script>
-    // CONFIGURAÇÃO SUPABASE
-    const SUPABASE_URL = 'https://vfwgaiakuqgnjtrosech.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmd2dhaWFrdXFnbmp0cm9zZWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2ODIxOTgsImV4cCI6MjEwNjI1ODE5OH0.mVNwINdCQ24HfdVlL9cKtKbnhnj5AhqM52TYh44xGvQ';
+// CONFIGURAÇÃO SUPABASE
+const SUPABASE_URL = 'https://vfwgaiakuqgnjtrosech.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmd2dhaWFrdXFnbmp0cm9zZWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2ODIxOTgsImV4cCI6MjEwNjI1ODE5OH0.mVNwINdCQ24HfdVlL9cKtKbnhnj5AhqM52TYh44xGvQ';
 
-    // ESTADOS LOCAIS
-    let veiculos = [];
-    let condutores = [];
-    let historico = [];
-    let abastecimentos = [];
-    let manutencoes = [];
-    let multas = [];
-    let sinistros = [];
-    let pagamentosAdm = {}; // Armazena baixas de pagamento do ADM por chave 'condutor_mes'
+let veiculos = [];
+let condutores = [];
+let historico = [];
+let abastecimentos = [];
+let manutencoes = [];
+let multas = [];
+let sinistros = [];
 
-    async function supabaseFetch(endpoint, options = {}) {
-      const headers = {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation',
-        ...options.headers
-      };
-      
-      try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, { ...options, headers });
-        if (!response.ok) throw new Error(`Erro Supabase HTTP: ${response.status}`);
-        return await response.json();
-      } catch (err) {
-        console.warn(`[Supabase Fetch Fallback - ${endpoint}]`, err);
-        return null;
-      }
+async function supabaseFetch(endpoint, options = {}) {
+  const method = options.method || 'GET';
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    ...options.headers
+  };
+
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, { ...options, method, headers });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[Supabase Error ${response.status}]`, errorText);
+      alert(`Erro na comunicação com o banco: ${response.statusText}`);
+      return null;
     }
-
-    function executarLogin() {
-      const u = document.getElementById('login-user').value.trim();
-      const p = document.getElementById('login-pass').value.trim();
-
-      if ((u === 'admin' && p === 'admin123') || u !== '') {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('app-screen').classList.remove('hidden');
-        document.getElementById('app-screen').classList.add('flex');
-        carregarDadosDoSupabase();
-      } else {
-        document.getElementById('login-error').classList.remove('hidden');
-      }
+    
+    // Se for DELETE ou inserção sem retorno de corpo, trata a resposta vazia
+    if (response.status === 204 || response.headers.get('content-length') === '0') {
+      return true;
     }
+    
+    return await response.json();
+  } catch (err) {
+    console.error(`[Supabase Fetch Fallback - ${endpoint}]`, err);
+    alert('Erro de conexão com o banco de dados Supabase.');
+    return null;
+  }
+}
 
-    function handleLogout() {
-      document.getElementById('app-screen').classList.add('hidden');
-      document.getElementById('login-screen').classList.remove('hidden');
-    }
+function executarLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value.trim();
 
- async function carregarDadosDoSupabase() {
+  if ((u === 'admin' && p === 'admin123') || u !== '') {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app-screen').classList.remove('hidden');
+    document.getElementById('app-screen').classList.add('flex');
+    carregarDadosDoSupabase();
+  } else {
+    document.getElementById('login-error').classList.remove('hidden');
+  }
+}
+
+function handleLogout() {
+  document.getElementById('app-screen').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+async function carregarDadosDoSupabase() {
   // 1. Veículos
   const dadosVeiculos = await supabaseFetch('veiculos?select=*');
-  veiculos = dadosVeiculos !== null ? dadosVeiculos : [];
+  veiculos = Array.isArray(dadosVeiculos) ? dadosVeiculos : [];
 
   // 2. Condutores
   const dadosCondutores = await supabaseFetch('condutores?select=*');
-  condutores = dadosCondutores !== null ? dadosCondutores : [];
+  condutores = Array.isArray(dadosCondutores) ? dadosCondutores : [];
 
   // 3. Abastecimentos
   const dadosAbastecimento = await supabaseFetch('abastecimentos?select=*');
-  abastecimentos = dadosAbastecimento !== null ? dadosAbastecimento : [];
+  abastecimentos = Array.isArray(dadosAbastecimento) ? dadosAbastecimento : [];
 
   // 4. Manutenções
   const dadosManutencao = await supabaseFetch('manutencoes?select=*');
-  manutencoes = dadosManutencao !== null ? dadosManutencao : [];
+  manutencoes = Array.isArray(dadosManutencao) ? dadosManutencao : [];
 
   // 5. Multas
   const dadosMultas = await supabaseFetch('multas?select=*');
-  multas = dadosMultas !== null ? dadosMultas : [];
+  multas = Array.isArray(dadosMultas) ? dadosMultas : [];
 
   // 6. Sinistros
   const dadosSinistros = await supabaseFetch('sinistros?select=*');
-  sinistros = dadosSinistros !== null ? dadosSinistros : [];
+  sinistros = Array.isArray(dadosSinistros) ? dadosSinistros : [];
 
   // 7. Histórico
   const dadosHistorico = await supabaseFetch('movimentacoes?select=*');
-  historico = dadosHistorico !== null ? dadosHistorico : [];
+  historico = Array.isArray(dadosHistorico) ? dadosHistorico : [];
 
   if (typeof lucide !== 'undefined') lucide.createIcons();
   renderAll();
   populateDropdowns();
 }
 
-    function populateSelectsGlobais() {
-      const vOpts = veiculos.map(v => `<option value="${v.placa} — ${v.modelo}">${v.placa} — ${v.modelo}</option>`).join('');
-      const cOpts = condutores.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-
-      ['a-veiculo', 'm-veiculo', 'mu-veiculo', 'si-veiculo', 'sel-veiculo-apuracao'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          if (id === 'sel-veiculo-apuracao') el.innerHTML = '<option value="">Todos os Veículos</option>' + vOpts;
-          else el.innerHTML = vOpts;
-        }
-      });
-
-      ['a-condutor', 'mu-condutor', 'si-condutor', 'sel-relatorio-condutor'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = cOpts;
-      });
-
-      populateFiltrosHistorico();
-    }
-
-    function renderAllTables() {
-      renderResumoGeral();
-      renderFrota();
-      renderCondutores();
-      renderRelatorioCondutor();
-      renderApuracaoVeiculo();
-      renderAbastecimento();
-      renderManutencao();
-      renderMultas();
-      renderSinistros();
-      renderHistorico();
-      if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
-
-    // 1. TELA RESUMO GERAL
-    function renderResumoGeral() {
-      // Veículos
-      document.getElementById('tb-resumo-corpo').innerHTML = veiculos.map(v => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-3 font-semibold text-slate-800">${v.placa} — ${v.modelo}</td>
-          <td class="p-3 text-slate-500">${v.tipo}</td>
-          <td class="p-3 text-right font-mono">${(v.km_ano || 0).toLocaleString('pt-BR')} km</td>
-          <td class="p-3 text-right font-mono">${v.kml || '-'}</td>
-          <td class="p-3 text-right font-mono">R$ ${(v.gasto_mensal || 0).toFixed(2)}</td>
-          <td class="p-3 text-right font-mono">R$ ${(v.custo_km || 0).toFixed(2)}</td>
-          <td class="p-3 text-center font-semibold">0</td>
-          <td class="p-3 text-center font-semibold">0</td>
-          <td class="p-3">
-            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${v.status === 'Ok' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
-              ${v.status || 'Ok'}
-            </span>
-          </td>
-        </tr>
-      `).join('');
-
-      // Pessoas
-      document.getElementById('tb-resumo-pessoas-corpo').innerHTML = condutores.map(c => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-3 font-semibold text-slate-800">${c.nome}</td>
-          <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 font-bold rounded text-[10px]">OK</span></td>
-          <td class="p-3 text-right font-mono">${(c.km_rodado || 0).toLocaleString('pt-BR')} km</td>
-          <td class="p-3 text-right font-mono">${c.consumo || '-'}</td>
-          <td class="p-3 text-center font-bold">${c.multas12m || 0}</td>
-          <td class="p-3 text-center font-bold text-amber-600">${c.pontos || 0}</td>
-          <td class="p-3 text-center font-bold text-rose-600">${c.sinistros12m || 0}</td>
-          <td class="p-3 text-right font-mono">R$ 8.877,00</td>
-          <td class="p-3 text-center"><span class="px-2 py-1 bg-emerald-100 text-emerald-700 font-bold text-[10px] rounded-full">BOM</span></td>
-        </tr>
-      `).join('');
-    }
-
-    // 2. TELA PAINEL DE FROTA
-    function renderFrota() {
-      document.getElementById('tb-frota-corpo').innerHTML = veiculos.map(v => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-3 font-semibold text-slate-800">${v.placa}<br/><span class="text-[10px] text-slate-400 font-normal">${v.modelo}</span></td>
-          <td class="p-3 text-right font-mono">${(v.km_ano || 0).toLocaleString('pt-BR')} km</td>
-          <td class="p-3 text-right font-mono">18.0%</td>
-          <td class="p-3 text-right font-mono">1.764</td>
-          <td class="p-3 text-right font-mono">${v.kml || '-'}</td>
-          <td class="p-3 text-right font-mono">${v.kml || '-'}</td>
-          <td class="p-3 text-right font-mono text-emerald-600">-0.0%</td>
-          <td class="p-3 text-right font-mono">R$ 11.120</td>
-          <td class="p-3 text-right font-mono">R$ 23.175</td>
-          <td class="p-3 text-right font-mono font-bold">R$ ${(v.custo_km || 0).toFixed(2)}</td>
-          <td class="p-3 text-right font-mono text-blue-600">R$ 8.877</td>
-          <td class="p-3 text-right font-mono">R$ 14.298</td>
-          <td class="p-3 text-right font-mono font-bold text-slate-900">R$ 23.175</td>
-          <td class="p-3 text-center space-x-1">
-            <button onclick="editVeiculoModal(${v.id})" class="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"><i data-lucide="edit" class="w-3.5 h-3.5"></i></button>
-            <button onclick="excluirVeiculoSupabase(${v.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-          </td>
-        </tr>
-      `).join('');
-
-      document.getElementById('tb-vencimentos-corpo').innerHTML = veiculos.map(v => {
-        const proxRev = v.prox_rev || 128000;
-        const odom = v.odometro_atual || 131941;
-        const diff = proxRev - odom;
-        const alerta = diff < 0 ? 'Revisão atrasada' : 'Ok';
-
-        return `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="p-3 font-semibold text-slate-800">${v.placa} — ${v.modelo}</td>
-            <td class="p-3">${v.licenciam || '20/03/2027'}</td>
-            <td class="p-3 text-center font-mono">144</td>
-            <td class="p-3">${v.seguro || '15/06/2027'}</td>
-            <td class="p-3 text-center font-mono">231</td>
-            <td class="p-3 text-right font-mono">${proxRev.toLocaleString('pt-BR')} km</td>
-            <td class="p-3 text-right font-mono">${odom.toLocaleString('pt-BR')} km</td>
-            <td class="p-3 text-right font-mono font-bold ${diff < 0 ? 'text-rose-600' : 'text-emerald-600'}">${diff.toLocaleString('pt-BR')} km</td>
-            <td class="p-3 text-center">
-              <span class="px-2 py-0.5 text-[10px] font-bold rounded ${diff < 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
-                ${alerta}
-              </span>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    // 3. TELA GESTÃO DE CONDUTORES
-    function renderCondutores() {
-      document.getElementById('tb-condutores-corpo').innerHTML = condutores.map(c => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-3 font-semibold text-slate-800">${c.nome}</td>
-          <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 font-bold rounded text-[10px]">OK</span></td>
-          <td class="p-3 text-right font-mono">${(c.km_rodado || 0).toLocaleString('pt-BR')} km</td>
-          <td class="p-3 text-right font-mono">${c.horas || 0}</td>
-          <td class="p-3 text-right font-mono">${c.vel_media || 0} km/h</td>
-          <td class="p-3 text-right font-mono">${c.consumo || 0}</td>
-          <td class="p-3 text-right font-mono">${c.consumo || 0}</td>
-          <td class="p-3 text-center font-bold">${c.multas12m || 0}</td>
-          <td class="p-3 text-center font-bold ${c.pontos > 0 ? 'text-amber-600' : 'text-slate-700'}">${c.pontos || 0}</td>
-          <td class="p-3 text-center font-bold">${c.gravissimas || 0}</td>
-          <td class="p-3 text-center font-mono">40</td>
-          <td class="p-3 text-right font-mono">0.0%</td>
-          <td class="p-3 text-right font-mono">R$ ${(c.valor_multas || 0).toFixed(2)}</td>
-          <td class="p-3 text-center font-bold text-rose-600">${c.sinistros12m || 0}</td>
-          <td class="p-3 text-right font-mono">R$ ${(c.custo_sinistros || 0).toFixed(2)}</td>
-          <td class="p-3 text-center space-x-1">
-            <button onclick="editCondutorModal(${c.id})" class="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"><i data-lucide="edit" class="w-3.5 h-3.5"></i></button>
-            <button onclick="excluirCondutorSupabase(${c.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // 4. TELA RELATÓRIO DO CONDUTOR
-    function renderRelatorioCondutor() {
-      const cSel = document.getElementById('sel-relatorio-condutor').value || (condutores[0] ? condutores[0].nome : '');
-      const cond = condutores.find(c => c.nome === cSel) || condutores[0];
-
-      if (!cond) return;
-
-      document.getElementById('ficha-condutor-detalhes').innerHTML = `
-        <p><span class="font-bold">CNH:</span> ${cond.cnh} (Cat: ${cond.cat})</p>
-        <p><span class="font-bold">Validade:</span> ${cond.validade || '-'}</p>
-        <p><span class="font-bold">EAR:</span> ${cond.ear || 'Não'}</p>
-        <p><span class="font-bold">Função:</span> ${cond.funcao || '-'}</p>
-        <p><span class="font-bold">% Trajeto cabe condutor:</span> ${cond.trajeto_pct || 50}%</p>
-        <p><span class="font-bold">Limite Diário Trajeto:</span> ${cond.limite_diario || 40} km</p>
-      `;
-
-      document.getElementById('desempenho-condutor-detalhes').innerHTML = `
-        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
-          <p class="text-slate-400 uppercase text-[9px] font-bold">KM Rodado (12m)</p>
-          <p class="font-bold text-slate-800 font-mono text-sm">${(cond.km_rodado || 0).toLocaleString('pt-BR')} km</p>
-        </div>
-        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
-          <p class="text-slate-400 uppercase text-[9px] font-bold">Horas ao Volante</p>
-          <p class="font-bold text-slate-800 font-mono text-sm">${cond.horas || 0} h</p>
-        </div>
-        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
-          <p class="text-slate-400 uppercase text-[9px] font-bold">Pontos CTB</p>
-          <p class="font-bold text-amber-600 font-mono text-sm">${cond.pontos || 0} pts</p>
-        </div>
-        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
-          <p class="text-slate-400 uppercase text-[9px] font-bold">Classificação Risco</p>
-          <p class="font-bold text-emerald-600 text-sm">BOM</p>
-        </div>
-      `;
-
-      const meses = ['jan/2027', 'fev/2027', 'mar/2027', 'abr/2027', 'mai/2027', 'jun/2027', 'jul/2027', 'ago/2027', 'set/2027', 'out/2027', 'nov/2027', 'dez/2027'];
-      
-      document.getElementById('tb-relatorio-reembolso-corpo').innerHTML = meses.map(m => {
-        const key = `${cond.nome}_${m}`;
-        const pStatus = pagamentosAdm[key] || { status: 'Pendente', data: '-' };
-
-        return `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="p-3 font-semibold text-slate-800">${m}</td>
-            <td class="p-3 text-right font-mono">1.225</td>
-            <td class="p-3 text-right font-mono">277</td>
-            <td class="p-3 text-right font-mono">R$ 408,00</td>
-            <td class="p-3 text-right font-mono">R$ 267,00</td>
-            <td class="p-3 text-right font-mono font-bold text-slate-900">R$ 674,00</td>
-            <td class="p-3 text-right font-mono font-bold text-rose-600">R$ 0,00</td>
-            <td class="p-3 text-right font-mono font-bold text-blue-600">R$ 674,00</td>
-            <td class="p-3 text-center">
-              <button onclick="togglePagamentoAdm('${cond.nome}', '${m}')" class="px-2.5 py-1 rounded text-[11px] font-bold shadow-sm transition cursor-pointer ${pStatus.status === 'Pago' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'}">
-                ${pStatus.status === 'Pago' ? `✓ Pago (${pStatus.data})` : '⏳ Marcar como Pago'}
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function togglePagamentoAdm(condutor, mes) {
-      const key = `${condutor}_${mes}`;
-      if (!pagamentosAdm[key] || pagamentosAdm[key].status === 'Pendente') {
-        const hoj = new Date().toLocaleDateString('pt-BR');
-        pagamentosAdm[key] = { status: 'Pago', data: hoj };
-      } else {
-        pagamentosAdm[key] = { status: 'Pendente', data: '-' };
-      }
-      renderRelatorioCondutor();
-    }
-
-    // 5. TELA APURAÇÃO MENSAL POR VEÍCULO
-    function renderApuracaoVeiculo() {
-      const vSel = document.getElementById('sel-veiculo-apuracao').value;
-      let list = veiculos;
-      if (vSel) list = list.filter(v => `${v.placa} — ${v.modelo}` === vSel);
-
-      const meses = ['jan/2027', 'fev/2027', 'mar/2027'];
-
-      let rowsHtml = '';
-      meses.forEach(m => {
-        list.forEach(v => {
-          rowsHtml += `
-            <tr class="hover:bg-slate-50 transition">
-              <td class="p-2.5 font-semibold text-slate-800">${m}</td>
-              <td class="p-2.5 text-slate-700">${v.placa} — ${v.modelo}</td>
-              <td class="p-2.5 text-right font-mono">118.000</td>
-              <td class="p-2.5 text-right font-mono">119.884</td>
-              <td class="p-2.5 text-right font-mono font-bold">1.884</td>
-              <td class="p-2.5 text-right font-mono">382</td>
-              <td class="p-2.5 text-right font-mono">1.225</td>
-              <td class="p-2.5 text-right font-mono">277</td>
-              <td class="p-2.5 text-right font-mono">139,6</td>
-              <td class="p-2.5 text-right font-mono">R$ 866</td>
-              <td class="p-2.5 text-right font-mono">${v.kml || '13.5'}</td>
-              <td class="p-2.5 text-right font-mono">R$ 0,46</td>
-              <td class="p-2.5 text-right font-mono">R$ 0,0311</td>
-              <td class="p-2.5 text-right font-mono">R$ 0,1748</td>
-              <td class="p-2.5 text-right font-mono">R$ 0,1000</td>
-              <td class="p-2.5 text-right font-mono">R$ 397</td>
-              <td class="p-2.5 text-right font-mono font-bold text-amber-700">R$ 674</td>
-              <td class="p-2.5 text-right font-mono font-bold text-emerald-700">R$ 1.164</td>
-            </tr>
-          `;
-        });
-      });
-
-      document.getElementById('tb-apuracao-veiculo-corpo').innerHTML = rowsHtml;
-    }
-
-    // 6. TELA DIÁRIO DE ABASTECIMENTO
-    function renderAbastecimento() {
-      document.getElementById('tb-abastecimento-corpo').innerHTML = abastecimentos.map(a => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-3 font-mono">${a.data}</td>
-          <td class="p-3 font-semibold text-slate-800">${a.veiculo}</td>
-          <td class="p-3 text-slate-600">${a.posto}</td>
-          <td class="p-3 text-slate-600">${a.combustivel}</td>
-          <td class="p-3 text-right font-mono">R$ ${(a.preco_unit || 0).toFixed(3)}</td>
-          <td class="p-3 text-right font-mono">${a.qtd || 0}</td>
-          <td class="p-3 text-right font-mono font-bold text-blue-600">R$ ${(a.total || 0).toFixed(2)}</td>
-          <td class="p-3 text-right font-mono">${(a.odometro || 0).toLocaleString('pt-BR')}</td>
-          <td class="p-3 text-slate-600">${a.condutor}</td>
-          <td class="p-3 text-slate-500">${a.nf || '-'}</td>
-          <td class="p-3 text-slate-500 text-[11px]">${a.obs || '-'}</td>
-          <td class="p-3 text-center space-x-1">
-            <button onclick="editAbastecimentoModal(${a.id})" class="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"><i data-lucide="edit" class="w-3.5 h-3.5"></i></button>
-            <button onclick="excluirAbastecimentoSupabase(${a.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // 7. TELA MANUTENÇÕES
-    function renderManutencao() {
-      document.getElementById('tb-manutencao-corpo').innerHTML = manutencoes.map(m => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-3 font-mono">${m.data}</td>
-          <td class="p-3 font-semibold text-slate-800">${m.veiculo}</td>
-          <td class="p-3 text-right font-mono">${(m.odometro || 0).toLocaleString('pt-BR')}</td>
-          <td class="p-3 text-slate-600">${m.tipo}</td>
-          <td class="p-3 text-slate-700">${m.descricao}</td>
-          <td class="p-3 text-slate-600">${m.oficina}</td>
-          <td class="p-3 text-right font-mono font-bold">R$ ${(m.valor || 0).toFixed(2)}</td>
-          <td class="p-3 text-slate-500">${m.nf || '-'}</td>
-          <td class="p-3 text-right font-mono">${m.prox_rev ? m.prox_rev.toLocaleString('pt-BR') : '-'}</td>
-          <td class="p-3 text-center font-bold text-emerald-600">${m.compoe_rkm || 'Sim'}</td>
-          <td class="p-3 text-center space-x-1">
-            <button onclick="editManutencaoModal(${m.id})" class="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"><i data-lucide="edit" class="w-3.5 h-3.5"></i></button>
-            <button onclick="excluirManutencaoSupabase(${m.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // 8. TELA MULTAS & INFRAÇÕES
-    function renderMultas() {
-      document.getElementById('tb-multas-corpo').innerHTML = multas.map(m => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-3 font-mono">${m.data}</td>
-          <td class="p-3 font-mono font-bold text-slate-800">${m.ait}</td>
-          <td class="p-3 font-semibold text-slate-800">${m.veiculo}</td>
-          <td class="p-3 text-slate-600">${m.condutor}</td>
-          <td class="p-3 text-slate-600">${m.local}</td>
-          <td class="p-3 text-slate-700">${m.descricao}</td>
-          <td class="p-3 text-center font-bold">${m.gravidade}</td>
-          <td class="p-3 text-center font-bold text-amber-600">${m.pontos}</td>
-          <td class="p-3 text-right font-mono font-bold">R$ ${(m.valor || 0).toFixed(2)}</td>
-          <td class="p-3"><span class="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold rounded text-[10px]">${m.situacao}</span></td>
-          <td class="p-3 text-slate-600">${m.pago_por}</td>
-          <td class="p-3 font-bold text-emerald-600">${m.ressarcir || 'Sim'}</td>
-          <td class="p-3 text-slate-500">${m.mes_cobranca || '-'}</td>
-          <td class="p-3 text-center space-x-1">
-            <button onclick="editMultaModal(${m.id})" class="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"><i data-lucide="edit" class="w-3.5 h-3.5"></i></button>
-            <button onclick="excluirMultaSupabase(${m.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // 9. TELA SINISTROS & AVARIAS
-    function renderSinistros() {
-      document.getElementById('tb-sinistros-corpo').innerHTML = sinistros.map(s => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-3 font-mono">${s.data}</td>
-          <td class="p-3 font-semibold text-slate-800">${s.veiculo}</td>
-          <td class="p-3 text-slate-600">${s.condutor}</td>
-          <td class="p-3 text-slate-600">${s.tipo}</td>
-          <td class="p-3 text-slate-700">${s.descricao}</td>
-          <td class="p-3 text-amber-700 font-bold">${s.culpa}</td>
-          <td class="p-3 text-right font-mono">R$ ${(s.prejuizo || 0).toFixed(2)}</td>
-          <td class="p-3 text-right font-mono font-bold">R$ ${(s.franquia || 0).toFixed(2)}</td>
-          <td class="p-3 text-center font-bold text-blue-600">${s.seguro}</td>
-          <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded text-[10px]">${s.status}</span></td>
-          <td class="p-3 text-right font-mono font-bold text-rose-600">R$ ${(s.ressarcir || 0).toFixed(2)}</td>
-          <td class="p-3 text-slate-500">${s.mes_cobranca || '-'}</td>
-          <td class="p-3 text-center space-x-1">
-            <button onclick="editSinistroModal(${s.id})" class="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"><i data-lucide="edit" class="w-3.5 h-3.5"></i></button>
-            <button onclick="excluirSinistroSupabase(${s.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // 10. TELA HISTÓRICO & AUDITORIA
-    function populateFiltrosHistorico() {
-      const selectVeiculo = document.getElementById('filtro-veiculo');
-      const selectCondutor = document.getElementById('filtro-condutor');
-
-      if (selectVeiculo) {
-        selectVeiculo.innerHTML = '<option value="">Todos os Veículos</option>' + veiculos.map(v => `<option value="${v.placa}">${v.placa} — ${v.modelo}</option>`).join('');
-      }
-      if (selectCondutor) {
-        selectCondutor.innerHTML = '<option value="">Todos os Condutores</option>' + condutores.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-      }
-    }
-
-    function renderHistorico() {
-      const dtInicio = document.getElementById('filtro-data-inicio').value;
-      const dtFim = document.getElementById('filtro-data-fim').value;
-      const vSel = document.getElementById('filtro-veiculo').value;
-      const cSel = document.getElementById('filtro-condutor').value;
-
-      let list = historico.filter(item => {
-        const dSaida = item.data_saida || item.dataSaida || '';
-        const dDevolucao = item.data_devolucao || item.dataDevolucao || '';
-        if (dtInicio && dSaida < dtInicio) return false;
-        if (dtFim && dDevolucao > dtFim) return false;
-        if (vSel && !item.veiculo.includes(vSel)) return false;
-        if (cSel && item.condutor !== cSel) return false;
-        return true;
-      });
-
-      document.getElementById('total-registros-count').innerText = `${list.length} registros encontrados`;
-
-      document.getElementById('tb-historico-corpo').innerHTML = list.map(h => {
-        const kmInicial = h.km_inicial || h.kmInicial || 0;
-        const kmFinal = h.km_final || h.kmFinal || 0;
-        const kmRodado = (kmFinal && kmInicial) ? (kmFinal - kmInicial) : 0;
-        const dSaida = (h.data_saida || h.dataSaida || '').replace('T', ' ');
-        const dDevolucao = (h.data_devolucao || h.dataDevolucao) ? (h.data_devolucao || h.dataDevolucao).replace('T', ' ') : 'Em andamento';
-        const fin = h.finalidade || 'Operacional / Serviço';
-
-        return `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="p-3 font-semibold text-slate-800">${h.veiculo}</td>
-            <td class="p-3 text-slate-600">${h.condutor}</td>
-            <td class="p-3 font-mono text-[11px] text-slate-500">${dSaida}</td>
-            <td class="p-3 font-mono text-[11px] text-slate-500">${dDevolucao}</td>
-            <td class="p-3 text-right font-mono">${kmInicial}</td>
-            <td class="p-3 text-right font-mono">${kmFinal || '-'}</td>
-            <td class="p-3 text-right font-mono font-bold text-blue-600">${kmRodado} km</td>
-            <td class="p-3 text-slate-700 font-semibold">${fin}</td>
-            <td class="p-3 text-center">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${fin.includes('Operacional') ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                ${fin.includes('Operacional') ? '100% Empresa' : 'Rateio / Colaborador'}
-              </span>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    // NAVEGAÇÃO DE ABAS
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('bg-blue-600', 'text-white');
-        btn.classList.add('text-slate-400');
-      });
-
-      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-      const activeBtn = document.getElementById(`btn-${tabId}`);
-      if (activeBtn) {
-        activeBtn.classList.add('bg-blue-600', 'text-white');
-        activeBtn.classList.remove('text-slate-400');
-      }
-
-      const titles = {
-        'resumo': 'Resumo Geral da Frota',
-        'frota': 'Painel de Frota & Cadastro de Veículos',
-        'condutores': 'Gestão de Condutores & Habilitação',
-        'relatorio-condutor': 'Relatório Individual do Condutor',
-        'apuracao-veiculo': 'Apuração Mensal por Veículo',
-        'abastecimento': 'Diário de Abastecimento',
-        'manutencao': 'Registro de Manutenções',
-        'multas': 'Multas & Infrações CTB',
-        'sinistros': 'Sinistros & Avarias de Veículos',
-        'historico': 'Histórico & Auditoria de Deslocamentos'
-      };
-      document.getElementById('page-title').innerText = titles[tabId] || 'Painel ADM';
-    }
-
-    // MODAL VEÍCULO
-    function openVeiculoModal() {
-      document.getElementById('modal-veiculo-title').innerText = 'Cadastrar Novo Veículo (Supabase)';
-      document.getElementById('form-veiculo').reset();
-      document.getElementById('v-id').value = '';
-      document.getElementById('modal-veiculo').classList.remove('hidden');
-    }
-    function editVeiculoModal(id) {
-      const v = veiculos.find(item => item.id === id);
-      if (!v) return;
-      document.getElementById('modal-veiculo-title').innerText = 'Editar Veículo (Supabase)';
-      document.getElementById('v-id').value = v.id;
-      document.getElementById('v-placa').value = v.placa;
-      document.getElementById('v-modelo').value = v.modelo;
-      document.getElementById('v-tipo').value = v.tipo;
-      document.getElementById('v-fipe').value = v.fipe;
-      document.getElementById('v-km-ano').value = v.km_ano;
-      document.getElementById('v-kml').value = v.kml;
-      document.getElementById('v-licenciam').value = v.licenciam || '2027-03-20';
-      document.getElementById('v-seguro').value = v.seguro || '2027-06-15';
-      document.getElementById('modal-veiculo').classList.remove('hidden');
-    }
-    function closeVeiculoModal() { document.getElementById('modal-veiculo').classList.add('hidden'); }
-
-    async function salvarVeiculoSupabase(e) {
-      e.preventDefault();
-      const id = document.getElementById('v-id').value;
-      const payload = {
-        placa: document.getElementById('v-placa').value.toUpperCase(),
-        modelo: document.getElementById('v-modelo').value,
-        tipo: document.getElementById('v-tipo').value,
-        fipe: parseFloat(document.getElementById('v-fipe').value),
-        km_ano: parseInt(document.getElementById('v-km-ano').value),
-        kml: parseFloat(document.getElementById('v-kml').value),
-        licenciam: document.getElementById('v-licenciam').value,
-        seguro: document.getElementById('v-seguro').value,
-        status: "Ok"
-      };
-
-      if (id) {
-        await supabaseFetch(`veiculos?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-      } else {
-        await supabaseFetch('veiculos', { method: 'POST', body: JSON.stringify(payload) });
-      }
-
-      closeVeiculoModal();
-      carregarDadosDoSupabase();
-    }
-
-    async function excluirVeiculoSupabase(id) {
-      if (confirm('Deseja excluir este veículo do banco de dados Supabase?')) {
-        await supabaseFetch(`veiculos?id=eq.${id}`, { method: 'DELETE' });
-        carregarDadosDoSupabase();
-      }
-    }
-
-    // MODAL CONDUTOR
-    function openCondutorModal() {
-      document.getElementById('modal-condutor-title').innerText = 'Cadastrar Novo Condutor (Supabase)';
-      document.getElementById('form-condutor').reset();
-      document.getElementById('c-id').value = '';
-      document.getElementById('modal-condutor').classList.remove('hidden');
-    }
-    function editCondutorModal(id) {
-      const c = condutores.find(item => item.id === id);
-      if (!c) return;
-      document.getElementById('modal-condutor-title').innerText = 'Editar Condutor (Supabase)';
-      document.getElementById('c-id').value = c.id;
-      document.getElementById('c-nome').value = c.nome;
-      document.getElementById('c-cnh').value = c.cnh;
-      document.getElementById('c-cat').value = c.cat;
-      document.getElementById('c-validade').value = c.validade;
-      document.getElementById('c-funcao').value = c.funcao;
-      document.getElementById('c-ear').value = c.ear || 'Não';
-      document.getElementById('c-trajeto-pct').value = c.trajeto_pct || 50;
-      document.getElementById('c-limite-diario').value = c.limite_diario || 40;
-      document.getElementById('modal-condutor').classList.remove('hidden');
-    }
-    function closeCondutorModal() { document.getElementById('modal-condutor').classList.add('hidden'); }
-
-    async function salvarCondutorSupabase(e) {
-      e.preventDefault();
-      const id = document.getElementById('c-id').value;
-      const payload = {
-        nome: document.getElementById('c-nome').value,
-        cnh: document.getElementById('c-cnh').value,
-        cat: document.getElementById('c-cat').value,
-        validade: document.getElementById('c-validade').value,
-        funcao: document.getElementById('c-funcao').value,
-        ear: document.getElementById('c-ear').value,
-        trajeto_pct: parseInt(document.getElementById('c-trajeto-pct').value),
-        limite_diario: parseInt(document.getElementById('c-limite-diario').value),
-        risco: "BOM"
-      };
-
-      if (id) {
-        await supabaseFetch(`condutores?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-      } else {
-        await supabaseFetch('condutores', { method: 'POST', body: JSON.stringify(payload) });
-      }
-
-      closeCondutorModal();
-      carregarDadosDoSupabase();
-    }
-
-    async function excluirCondutorSupabase(id) {
-      if (confirm('Deseja excluir este condutor do banco de dados Supabase?')) {
-        await supabaseFetch(`condutores?id=eq.${id}`, { method: 'DELETE' });
-        carregarDadosDoSupabase();
-      }
-    }
-
-    // MODAL ABASTECIMENTO
-    function openAbastecimentoModal() {
-      document.getElementById('modal-abastecimento-title').innerText = 'Novo Registro de Abastecimento';
-      document.getElementById('form-abastecimento').reset();
-      document.getElementById('a-id').value = '';
-      document.getElementById('a-data').value = new Date().toISOString().split('T')[0];
-      document.getElementById('modal-abastecimento').classList.remove('hidden');
-    }
-    function editAbastecimentoModal(id) {
-      const a = abastecimentos.find(item => item.id === id);
-      if (!a) return;
-      document.getElementById('modal-abastecimento-title').innerText = 'Editar Registro de Abastecimento';
-      document.getElementById('a-id').value = a.id;
-      document.getElementById('a-data').value = a.data;
-      document.getElementById('a-veiculo').value = a.veiculo;
-      document.getElementById('a-posto').value = a.posto;
-      document.getElementById('a-combustivel').value = a.combustivel;
-      document.getElementById('a-preco-unit').value = a.preco_unit;
-      document.getElementById('a-qtd').value = a.qtd;
-      document.getElementById('a-total').value = a.total;
-      document.getElementById('a-odometro').value = a.odometro;
-      document.getElementById('a-condutor').value = a.condutor;
-      document.getElementById('a-nf').value = a.nf || '';
-      document.getElementById('modal-abastecimento').classList.remove('hidden');
-    }
-    function closeAbastecimentoModal() { document.getElementById('modal-abastecimento').classList.add('hidden'); }
-
-    function calcularTotalAbastecimento() {
-      const p = parseFloat(document.getElementById('a-preco-unit').value) || 0;
-      const q = parseFloat(document.getElementById('a-qtd').value) || 0;
-      document.getElementById('a-total').value = (p * q).toFixed(2);
-    }
-
-    async function salvarAbastecimentoSupabase(e) {
-      e.preventDefault();
-      const id = document.getElementById('a-id').value;
-      const payload = {
-        data: document.getElementById('a-data').value,
-        veiculo: document.getElementById('a-veiculo').value,
-        posto: document.getElementById('a-posto').value,
-        combustivel: document.getElementById('a-combustivel').value,
-        preco_unit: parseFloat(document.getElementById('a-preco-unit').value),
-        qtd: parseFloat(document.getElementById('a-qtd').value),
-        total: parseFloat(document.getElementById('a-total').value),
-        odometro: parseInt(document.getElementById('a-odometro').value),
-        condutor: document.getElementById('a-condutor').value,
-        nf: document.getElementById('a-nf').value
-      };
-
-      if (id) {
-        await supabaseFetch(`abastecimentos?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-      } else {
-        await supabaseFetch('abastecimentos', { method: 'POST', body: JSON.stringify(payload) });
-      }
-
-      closeAbastecimentoModal();
-      carregarDadosDoSupabase();
-    }
-
-    async function excluirAbastecimentoSupabase(id) {
-      if (confirm('Deseja excluir este registro de abastecimento?')) {
-        await supabaseFetch(`abastecimentos?id=eq.${id}`, { method: 'DELETE' });
-        carregarDadosDoSupabase();
-      }
-    }
-
-    // MODAL MANUTENÇÃO
-    function openManutencaoModal() {
-      document.getElementById('modal-manutencao-title').innerText = 'Novo Registro de Manutenção';
-      document.getElementById('form-manutencao').reset();
-      document.getElementById('m-id').value = '';
-      document.getElementById('m-data').value = new Date().toISOString().split('T')[0];
-      document.getElementById('modal-manutencao').classList.remove('hidden');
-    }
-    function editManutencaoModal(id) {
-      const m = manutencoes.find(item => item.id === id);
-      if (!m) return;
-      document.getElementById('modal-manutencao-title').innerText = 'Editar Manutenção';
-      document.getElementById('m-id').value = m.id;
-      document.getElementById('m-data').value = m.data;
-      document.getElementById('m-veiculo').value = m.veiculo;
-      document.getElementById('m-odometro').value = m.odometro;
-      document.getElementById('m-tipo').value = m.tipo;
-      document.getElementById('m-descricao').value = m.descricao;
-      document.getElementById('m-oficina').value = m.oficina;
-      document.getElementById('m-valor').value = m.valor;
-      document.getElementById('m-nf').value = m.nf || '';
-      document.getElementById('m-prox-rev').value = m.prox_rev || '';
-      document.getElementById('m-compoe-rkm').value = m.compoe_rkm || 'Sim';
-      document.getElementById('modal-manutencao').classList.remove('hidden');
-    }
-    function closeManutencaoModal() { document.getElementById('modal-manutencao').classList.add('hidden'); }
-
-    async function salvarManutencaoSupabase(e) {
-      e.preventDefault();
-      const id = document.getElementById('m-id').value;
-      const payload = {
-        data: document.getElementById('m-data').value,
-        veiculo: document.getElementById('m-veiculo').value,
-        odometro: parseInt(document.getElementById('m-odometro').value),
-        tipo: document.getElementById('m-tipo').value,
-        descricao: document.getElementById('m-descricao').value,
-        oficina: document.getElementById('m-oficina').value,
-        valor: parseFloat(document.getElementById('m-valor').value),
-        nf: document.getElementById('m-nf').value,
-        prox_rev: parseInt(document.getElementById('m-prox-rev').value) || null,
-        compoe_rkm: document.getElementById('m-compoe-rkm').value
-      };
-
-      if (id) {
-        await supabaseFetch(`manutencoes?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-      } else {
-        await supabaseFetch('manutencoes', { method: 'POST', body: JSON.stringify(payload) });
-      }
-
-      closeManutencaoModal();
-      carregarDadosDoSupabase();
-    }
-
-    async function excluirManutencaoSupabase(id) {
-      if (confirm('Deseja excluir esta manutenção?')) {
-        await supabaseFetch(`manutencoes?id=eq.${id}`, { method: 'DELETE' });
-        carregarDadosDoSupabase();
-      }
-    }
-
-    // MODAL MULTA
-    function openMultaModal() {
-      document.getElementById('modal-multa-title').innerText = 'Novo Registro de Multa CTB';
-      document.getElementById('form-multa').reset();
-      document.getElementById('mu-id').value = '';
-      document.getElementById('mu-data').value = new Date().toISOString().split('T')[0];
-      document.getElementById('modal-multa').classList.remove('hidden');
-    }
-    function editMultaModal(id) {
-      const m = multas.find(item => item.id === id);
-      if (!m) return;
-      document.getElementById('modal-multa-title').innerText = 'Editar Multa CTB';
-      document.getElementById('mu-id').value = m.id;
-      document.getElementById('mu-data').value = m.data;
-      document.getElementById('mu-ait').value = m.ait;
-      document.getElementById('mu-veiculo').value = m.veiculo;
-      document.getElementById('mu-condutor').value = m.condutor;
-      document.getElementById('mu-local').value = m.local;
-      document.getElementById('mu-descricao').value = m.descricao;
-      document.getElementById('mu-gravidade').value = m.gravidade;
-      document.getElementById('mu-pontos').value = m.pontos;
-      document.getElementById('mu-valor').value = m.valor;
-      document.getElementById('mu-situacao').value = m.situacao;
-      document.getElementById('mu-pago-por').value = m.pago_por;
-      document.getElementById('mu-mes-cobranca').value = m.mes_cobranca || '';
-      document.getElementById('modal-multa').classList.remove('hidden');
-    }
-    function closeMultaModal() { document.getElementById('modal-multa').classList.add('hidden'); }
-
-    function calcularPontosGravidade() {
-      const g = document.getElementById('mu-gravidade').value;
-      const pts = { 'Leve': 3, 'Média': 4, 'Grave': 5, 'Gravíssima': 7 };
-      document.getElementById('mu-pontos').value = pts[g] || 4;
-    }
-
-    async function salvarMultaSupabase(e) {
-      e.preventDefault();
-      const id = document.getElementById('mu-id').value;
-      const payload = {
-        data: document.getElementById('mu-data').value,
-        ait: document.getElementById('mu-ait').value.toUpperCase(),
-        veiculo: document.getElementById('mu-veiculo').value,
-        condutor: document.getElementById('mu-condutor').value,
-        local: document.getElementById('mu-local').value,
-        descricao: document.getElementById('mu-descricao').value,
-        gravidade: document.getElementById('mu-gravidade').value,
-        pontos: parseInt(document.getElementById('mu-pontos').value),
-        valor: parseFloat(document.getElementById('mu-valor').value),
-        situacao: document.getElementById('mu-situacao').value,
-        pago_por: document.getElementById('mu-pago-por').value,
-        mes_cobranca: document.getElementById('mu-mes-cobranca').value
-      };
-
-      if (id) {
-        await supabaseFetch(`multas?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-      } else {
-        await supabaseFetch('multas', { method: 'POST', body: JSON.stringify(payload) });
-      }
-
-      closeMultaModal();
-      carregarDadosDoSupabase();
-    }
-
-    async function excluirMultaSupabase(id) {
-      if (confirm('Deseja excluir esta multa?')) {
-        await supabaseFetch(`multas?id=eq.${id}`, { method: 'DELETE' });
-        carregarDadosDoSupabase();
-      }
-    }
-
-    // MODAL SINISTRO
-    function openSinistroModal() {
-      document.getElementById('modal-sinistro-title').innerText = 'Novo Registro de Sinistro / Avaria';
-      document.getElementById('form-sinistro').reset();
-      document.getElementById('si-id').value = '';
-      document.getElementById('si-data').value = new Date().toISOString().split('T')[0];
-      document.getElementById('modal-sinistro').classList.remove('hidden');
-    }
-    function editSinistroModal(id) {
-      const s = sinistros.find(item => item.id === id);
-      if (!s) return;
-      document.getElementById('modal-sinistro-title').innerText = 'Editar Sinistro / Avaria';
-      document.getElementById('si-id').value = s.id;
-      document.getElementById('si-data').value = s.data;
-      document.getElementById('si-veiculo').value = s.veiculo;
-      document.getElementById('si-condutor').value = s.condutor;
-      document.getElementById('si-tipo').value = s.tipo;
-      document.getElementById('si-descricao').value = s.descricao;
-      document.getElementById('si-culpa').value = s.culpa;
-      document.getElementById('si-prejuizo').value = s.prejuizo;
-      document.getElementById('si-franquia').value = s.franquia;
-      document.getElementById('si-seguro').value = s.seguro;
-      document.getElementById('si-ressarcir').value = s.ressarcir || 0;
-      document.getElementById('si-mes-cobranca').value = s.mes_cobranca || '';
-      document.getElementById('modal-sinistro').classList.remove('hidden');
-    }
-    function closeSinistroModal() { document.getElementById('modal-sinistro').classList.add('hidden'); }
-
-    async function salvarSinistroSupabase(e) {
-      e.preventDefault();
-      const id = document.getElementById('si-id').value;
-      const payload = {
-        data: document.getElementById('si-data').value,
-        veiculo: document.getElementById('si-veiculo').value,
-        condutor: document.getElementById('si-condutor').value,
-        tipo: document.getElementById('si-tipo').value,
-        descricao: document.getElementById('si-descricao').value,
-        culpa: document.getElementById('si-culpa').value,
-        prejuizo: parseFloat(document.getElementById('si-prejuizo').value),
-        franquia: parseFloat(document.getElementById('si-franquia').value),
-        seguro: document.getElementById('si-seguro').value,
-        status: "Concluído",
-        ressarcir: parseFloat(document.getElementById('si-ressarcir').value) || 0,
-        mes_cobranca: document.getElementById('si-mes-cobranca').value
-      };
-
-      if (id) {
-        await supabaseFetch(`sinistros?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-      } else {
-        await supabaseFetch('sinistros', { method: 'POST', body: JSON.stringify(payload) });
-      }
-
-      closeSinistroModal();
-      carregarDadosDoSupabase();
-    }
-
-    async function excluirSinistroSupabase(id) {
-      if (confirm('Deseja excluir este registro de sinistro?')) {
-        await supabaseFetch(`sinistros?id=eq.${id}`, { method: 'DELETE' });
-        carregarDadosDoSupabase();
-      }
-    }
-
+function renderAll() {
+  renderKPIs();
+  renderResumoTable();
+  renderFrotaTable();
+  renderCondutoresTable();
+  renderAbastecimentoTable();
+  renderManutencaoTable();
+  renderMultasTable();
+  renderSinistrosTable();
+  renderHistoricoTable();
+  renderRelatorioCondutor();
+  renderApuracaoVeiculoTable();
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function renderKPIs() {
+  document.getElementById('kpi-cards').innerHTML = `
+    <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Multas Pendentes</p><h4 class="text-xl font-bold text-amber-600">${multas.filter(m => m.situacao !== 'Concluído').length}</h4></div>
+    <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">CNH Vencendo</p><h4 class="text-xl font-bold text-emerald-600">0</h4></div>
+    <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Veículos Pendência</p><h4 class="text-xl font-bold text-rose-600">${veiculos.filter(v => v.status !== 'Ok').length}</h4></div>
+    <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Sinistros 12m</p><h4 class="text-xl font-bold text-slate-800">${sinistros.length}</h4></div>
+    <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Total Veículos</p><h4 class="text-xl font-bold text-blue-600">${veiculos.length}</h4></div>
+    <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Condutores Ativos</p><h4 class="text-xl font-bold text-indigo-600">${condutores.length}</h4></div>
+  `;
+}
+
+function renderResumoTable() {
+  document.getElementById('tb-resumo-corpo').innerHTML = veiculos.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum veículo cadastrado.</td></tr>' : veiculos.map(v => `
+    <tr class="hover:bg-slate-50 transition">
+      <td class="p-2 font-semibold text-slate-800">${v.placa} — ${v.modelo}</td>
+      <td class="p-2 text-slate-500">${v.tipo}</td>
+      <td class="p-2 text-right font-mono">${(v.km_ano || 0).toLocaleString('pt-BR')} km</td>
+      <td class="p-2 text-right font-mono">${v.kml || '-'}</td>
+      <td class="p-2 text-right font-mono">R$ ${(v.gasto_mensal || 0).toFixed(2)}</td>
+      <td class="p-2 text-right font-mono">R$ ${(v.custo_km || 0).toFixed(2)}</td>
+      <td class="p-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${v.status === 'Ok' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${v.status || 'Ok'}</span></td>
+    </tr>
+  `).join('');
+}
+
+function renderFrotaTable() {
+  document.getElementById('tb-frota-corpo').innerHTML = veiculos.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum veículo cadastrado.</td></tr>' : veiculos.map(v => `
+    <tr class="hover:bg-slate-50 transition">
+      <td class="p-2 font-semibold text-slate-800">${v.placa} <br/><span class="text-[10px] text-slate-400">${v.modelo}</span></td>
+      <td class="p-2 text-right font-mono">R$ ${(v.fipe || 0).toLocaleString('pt-BR')}</td>
+      <td class="p-2 text-right font-mono">${(v.km_ano || 0).toLocaleString('pt-BR')} km</td>
+      <td class="p-2 text-right font-mono">${v.kml || '-'}</td>
+      <td class="p-2 text-right font-mono">R$ ${(v.fixo_mensal || 0).toFixed(2)}</td>
+      <td class="p-2 text-slate-600">${v.prox_rev || 'N/A'}</td>
+      <td class="p-2 text-center">
+        <button onclick="editVeiculoModal(${v.id})" class="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"><i data-lucide="edit" class="w-3.5 h-3.5"></i></button>
+        <button onclick="excluirVeiculoSupabase(${v.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderCondutoresTable() {
+  document.getElementById('tb-condutores-corpo').innerHTML = condutores.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum condutor cadastrado.</td></tr>' : condutores.map(c => `
+    <tr class="hover:bg-slate-50 transition">
+      <td class="p-2 font-semibold text-slate-800">${c.nome}</td>
+      <td class="p-2 font-mono">${c.cnh} <span class="bg-slate-200 px-1 py-0.5 rounded text-[10px]">${c.cat || 'B'}</span></td>
+      <td class="p-2 text-slate-600">${c.validade || '-'}</td>
+      <td class="p-2 text-slate-600">${c.funcao || '-'}</td>
+      <td class="p-2 text-center font-bold ${c.pontos > 0 ? 'text-amber-600' : 'text-slate-700'}">${c.pontos || 0}</td>
+      <td class="p-2 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] rounded-full font-medium">${c.status || 'Ativo'}</span></td>
+      <td class="p-2 text-center">
+        <button onclick="editCondutorModal(${c.id})" class="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"><i data-lucide="edit" class="w-3.5 h-3.5"></i></button>
+        <button onclick="excluirCondutorSupabase(${c.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderAbastecimentoTable() {
+  document.getElementById('tb-abastecimentos-corpo').innerHTML = abastecimentos.length === 0 ? '<tr><td colspan="10" class="p-4 text-center text-slate-400">Nenhum abastecimento registrado.</td></tr>' : abastecimentos.map(a => `
+    <tr class="hover:bg-slate-50 transition">
+      <td class="p-2 font-mono text-slate-600">${a.data}</td>
+      <td class="p-2 font-semibold text-slate-800">${a.veiculo}</td>
+      <td class="p-2 text-slate-600">${a.posto}</td>
+      <td class="p-2 text-slate-600">${a.combustivel}</td>
+      <td class="p-2 text-right font-mono">R$ ${(a.preco_un || 0).toFixed(2)}</td>
+      <td class="p-2 text-right font-mono">${(a.litros_kwh || 0).toFixed(2)}</td>
+      <td class="p-2 text-right font-mono font-bold text-emerald-600">R$ ${(a.valor_total || 0).toFixed(2)}</td>
+      <td class="p-2 text-right font-mono">${(a.odometro || 0).toLocaleString('pt-BR')} km</td>
+      <td class="p-2 text-slate-600">${a.condutor}</td>
+      <td class="p-2 text-center">
+        <button onclick="excluirAbastecimentoSupabase(${a.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderManutencaoTable() {
+  document.getElementById('tb-manutencao-corpo').innerHTML = manutencoes.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhuma manutenção registrada.</td></tr>' : manutencoes.map(m => `
+    <tr class="hover:bg-slate-50 transition">
+      <td class="p-2 font-mono text-slate-600">${m.data}</td>
+      <td class="p-2 font-semibold text-slate-800">${m.veiculo}</td>
+      <td class="p-2 text-right font-mono">${(m.odometro || 0).toLocaleString('pt-BR')} km</td>
+      <td class="p-2 text-slate-600">${m.tipo}</td>
+      <td class="p-2 text-slate-600">${m.descricao}</td>
+      <td class="p-2 text-slate-600">${m.oficina}</td>
+      <td class="p-2 text-right font-mono font-bold text-slate-800">R$ ${(m.valor || 0).toFixed(2)}</td>
+      <td class="p-2 font-mono text-slate-500">${m.nf || '-'}</td>
+      <td class="p-2 text-center">
+        <button onclick="excluirManutencaoSupabase(${m.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderMultasTable() {
+  document.getElementById('tb-multas-corpo').innerHTML = multas.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhuma multa registrada.</td></tr>' : multas.map(mu => `
+    <tr class="hover:bg-slate-50 transition">
+      <td class="p-2 font-mono text-slate-600">${mu.data}</td>
+      <td class="p-2 font-mono text-slate-800 font-semibold">${mu.ait}</td>
+      <td class="p-2 text-slate-800">${mu.veiculo}</td>
+      <td class="p-2 text-slate-600">${mu.condutor}</td>
+      <td class="p-2 text-slate-600">${mu.gravidade}</td>
+      <td class="p-2 text-center font-bold text-amber-600">${mu.pontos}</td>
+      <td class="p-2 text-right font-mono font-bold text-rose-600">R$ ${(mu.valor || 0).toFixed(2)}</td>
+      <td class="p-2 text-slate-600"><span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px]">${mu.situacao}</span></td>
+      <td class="p-2 text-center">
+        <button onclick="excluirMultaSupabase(${mu.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderSinistrosTable() {
+  document.getElementById('tb-sinistros-corpo').innerHTML = sinistros.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhum sinistro registrado.</td></tr>' : sinistros.map(s => `
+    <tr class="hover:bg-slate-50 transition">
+      <td class="p-2 font-mono text-slate-600">${s.data}</td>
+      <td class="p-2 font-semibold text-slate-800">${s.veiculo}</td>
+      <td class="p-2 text-slate-600">${s.condutor}</td>
+      <td class="p-2 text-slate-600">${s.tipo}</td>
+      <td class="p-2 text-slate-600">${s.culpa}</td>
+      <td class="p-2 text-right font-mono">R$ ${(s.valor_prejuizo || 0).toFixed(2)}</td>
+      <td class="p-2 text-right font-mono font-bold text-rose-600">R$ ${(s.franquia_paga || 0).toFixed(2)}</td>
+      <td class="p-2 text-slate-600"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[10px]">${s.status}</span></td>
+      <td class="p-2 text-center">
+        <button onclick="excluirSinistroSupabase(${s.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderHistoricoTable() {
+  document.getElementById('tb-historico-corpo').innerHTML = historico.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhuma movimentação registrada.</td></tr>' : historico.map(h => {
+    const kmInic = h.km_inicial || 0;
+    const kmFin = h.km_final || 0;
+    return `
+      <tr class="hover:bg-slate-50 transition">
+        <td class="p-2 font-semibold text-slate-800">${h.veiculo}</td>
+        <td class="p-2 text-slate-600">${h.condutor}</td>
+        <td class="p-2 font-mono text-[10px] text-slate-500">${(h.data_saida||'').replace('T',' ')}</td>
+        <td class="p-2 font-mono text-[10px] text-slate-500">${(h.data_devolucao||'').replace('T',' ')}</td>
+        <td class="p-2 text-right font-mono">${kmInic}</td>
+        <td class="p-2 text-right font-mono">${kmFin || '-'}</td>
+        <td class="p-2 text-slate-600">${h.finalidade || 'Operacional / Serviço'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function populateDropdowns() {
+  const selRel = document.getElementById('sel-rel-condutor');
+  const optCondutores = condutores.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+  const optVeiculos = veiculos.map(v => `<option value="${v.placa} — ${v.modelo}">${v.placa} — ${v.modelo}</option>`).join('');
+
+  if (selRel) selRel.innerHTML = optCondutores || '<option value="">Sem condutores</option>';
+  
+  ['a-veiculo', 'm-veiculo', 'mu-veiculo', 'si-veiculo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = optVeiculos || '<option value="">Sem veículos</option>';
+  });
+
+  ['a-condutor', 'mu-condutor', 'si-condutor'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = optCondutores || '<option value="">Sem condutores</option>';
+  });
+}
+
+function renderRelatorioCondutor() {
+  const nome = document.getElementById('sel-rel-condutor').value || (condutores[0] ? condutores[0].nome : '');
+  const c = condutores.find(item => item.nome === nome) || {};
+
+  document.getElementById('rel-condutor-detalhes').innerHTML = `
+    <div class="border-b pb-3 flex justify-between items-center">
+      <div>
+        <h3 class="text-base font-bold text-slate-900">${c.nome || 'Nenhum condutor selecionado'}</h3>
+        <p class="text-slate-500">CNH: ${c.cnh || '-'} | Categoria: ${c.cat || 'B'} | Validade: ${c.validade || '-'}</p>
+      </div>
+      <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold">Situação: ${c.status || 'Inativo'}</span>
+    </div>
+    <div class="grid grid-cols-3 gap-4 border-b pb-4">
+      <div class="p-3 bg-slate-50 rounded">
+        <p class="text-slate-500 text-[10px] uppercase font-bold">Pontos CTB (12m)</p>
+        <p class="text-lg font-bold text-amber-600">${c.pontos || 0} / 40 pts</p>
+      </div>
+      <div class="p-3 bg-slate-50 rounded">
+        <p class="text-slate-500 text-[10px] uppercase font-bold">Multas Registradas</p>
+        <p class="text-lg font-bold text-slate-800">${multas.filter(m => m.condutor === c.nome).length}</p>
+      </div>
+      <div class="p-3 bg-slate-50 rounded">
+        <p class="text-slate-500 text-[10px] uppercase font-bold">Sinistros com Culpa</p>
+        <p class="text-lg font-bold text-rose-600">${sinistros.filter(s => s.condutor === c.nome && s.culpa === 'Própria').length}</p>
+      </div>
+    </div>
+  `;
+}
+
+function renderApuracaoVeiculoTable() {
+  document.getElementById('tb-apuracao-veiculo-corpo').innerHTML = veiculos.length === 0 ? '<tr><td colspan="8" class="p-4 text-center text-slate-400">Nenhum veículo apurado.</td></tr>' : veiculos.map(v => `
+    <tr class="hover:bg-slate-50 transition">
+      <td class="p-2 font-semibold text-slate-800">jan/2027 — ${v.placa}</td>
+      <td class="p-2 text-right font-mono">0 km</td>
+      <td class="p-2 text-right font-mono">0 km</td>
+      <td class="p-2 text-right font-mono">0 km</td>
+      <td class="p-2 text-right font-mono">0 L</td>
+      <td class="p-2 text-right font-mono font-bold">R$ 0,00</td>
+      <td class="p-2 text-right font-mono text-blue-600 font-bold">R$ 0,00</td>
+      <td class="p-2 text-right font-mono text-emerald-700 font-bold">R$ 0,00</td>
+    </tr>
+  `).join('');
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.remove('bg-blue-600', 'text-white');
+    btn.classList.add('text-slate-400');
+  });
+
+  document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+  const activeBtn = document.getElementById(`btn-${tabId}`);
+  if (activeBtn) {
+    activeBtn.classList.add('bg-blue-600', 'text-white');
+    activeBtn.classList.remove('text-slate-400');
+  }
+}
+
+// MODAIS VEÍCULO
+function openVeiculoModal() {
+  document.getElementById('form-veiculo').reset();
+  document.getElementById('v-id').value = '';
+  document.getElementById('modal-veiculo-titulo').innerText = 'Cadastrar Veículo';
+  document.getElementById('modal-veiculo').classList.remove('hidden');
+}
+function closeVeiculoModal() { document.getElementById('modal-veiculo').classList.add('hidden'); }
+
+async function salvarVeiculoSupabase(e) {
+  e.preventDefault();
+  const id = document.getElementById('v-id').value;
+  const payload = {
+    placa: document.getElementById('v-placa').value.toUpperCase(),
+    modelo: document.getElementById('v-modelo').value,
+    tipo: document.getElementById('v-tipo').value,
+    fipe: parseFloat(document.getElementById('v-fipe').value) || 0,
+    km_ano: parseInt(document.getElementById('v-km-ano').value) || 0,
+    kml: parseFloat(document.getElementById('v-kml').value) || 0,
+    status: "Ok"
+  };
+
+  if (id) {
+    await supabaseFetch(`veiculos?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+  } else {
+    await supabaseFetch('veiculos', { method: 'POST', body: JSON.stringify(payload) });
+  }
+  closeVeiculoModal();
+  carregarDadosDoSupabase();
+}
+
+async function excluirVeiculoSupabase(id) {
+  if (confirm('Deseja excluir este veículo do banco Supabase?')) {
+    await supabaseFetch(`veiculos?id=eq.${id}`, { method: 'DELETE' });
+    carregarDadosDoSupabase();
+  }
+}
+
+// MODAIS CONDUTOR
+function openCondutorModal() {
+  document.getElementById('form-condutor').reset();
+  document.getElementById('c-id').value = '';
+  document.getElementById('modal-condutor-titulo').innerText = 'Cadastrar Condutor';
+  document.getElementById('modal-condutor').classList.remove('hidden');
+}
+function closeCondutorModal() { document.getElementById('modal-condutor').classList.add('hidden'); }
+
+async function salvarCondutorSupabase(e) {
+  e.preventDefault();
+  const id = document.getElementById('c-id').value;
+  const payload = {
+    nome: document.getElementById('c-nome').value,
+    cnh: document.getElementById('c-cnh').value,
+    cat: document.getElementById('c-cat').value,
+    validade: document.getElementById('c-validade').value,
+    funcao: document.getElementById('c-funcao').value,
+    status: "Ativo"
+  };
+
+  if (id) {
+    await supabaseFetch(`condutores?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+  } else {
+    await supabaseFetch('condutores', { method: 'POST', body: JSON.stringify(payload) });
+  }
+  closeCondutorModal();
+  carregarDadosDoSupabase();
+}
+
+async function excluirCondutorSupabase(id) {
+  if (confirm('Deseja excluir este condutor do banco Supabase?')) {
+    await supabaseFetch(`condutores?id=eq.${id}`, { method: 'DELETE' });
+    carregarDadosDoSupabase();
+  }
+}
+
+// MODAIS ABASTECIMENTO
+function openAbastecimentoModal() {
+  document.getElementById('form-abastecimento').reset();
+  document.getElementById('a-id').value = '';
+  document.getElementById('modal-abastecimento').classList.remove('hidden');
+}
+function closeAbastecimentoModal() { document.getElementById('modal-abastecimento').classList.add('hidden'); }
+function calcularTotalAbastecimento() {
+  const p = parseFloat(document.getElementById('a-preco').value) || 0;
+  const l = parseFloat(document.getElementById('a-litros').value) || 0;
+  document.getElementById('a-total').value = (p * l).toFixed(2);
+}
+
+async function salvarAbastecimentoSupabase(e) {
+  e.preventDefault();
+  const id = document.getElementById('a-id').value;
+  const payload = {
+    data: document.getElementById('a-data').value,
+    veiculo: document.getElementById('a-veiculo').value,
+    posto: document.getElementById('a-posto').value,
+    combustivel: document.getElementById('a-combustivel').value,
+    preco_un: parseFloat(document.getElementById('a-preco').value) || 0,
+    litros_kwh: parseFloat(document.getElementById('a-litros').value) || 0,
+    valor_total: parseFloat(document.getElementById('a-total').value) || 0,
+    odometro: parseInt(document.getElementById('a-odometro').value) || 0,
+    condutor: document.getElementById('a-condutor').value
+  };
+
+  if (id) {
+    await supabaseFetch(`abastecimentos?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+  } else {
+    await supabaseFetch('abastecimentos', { method: 'POST', body: JSON.stringify(payload) });
+  }
+  closeAbastecimentoModal();
+  carregarDadosDoSupabase();
+}
+
+async function excluirAbastecimentoSupabase(id) {
+  if (confirm('Deseja excluir este abastecimento do banco Supabase?')) {
+    await supabaseFetch(`abastecimentos?id=eq.${id}`, { method: 'DELETE' });
+    carregarDadosDoSupabase();
+  }
+}
+
+// MODAIS MANUTENÇÃO
+function openManutencaoModal() {
+  document.getElementById('form-manutencao').reset();
+  document.getElementById('m-id').value = '';
+  document.getElementById('modal-manutencao').classList.remove('hidden');
+}
+function closeManutencaoModal() { document.getElementById('modal-manutencao').classList.add('hidden'); }
+
+async function salvarManutencaoSupabase(e) {
+  e.preventDefault();
+  const id = document.getElementById('m-id').value;
+  const payload = {
+    data: document.getElementById('m-data').value,
+    veiculo: document.getElementById('m-veiculo').value,
+    odometro: parseInt(document.getElementById('m-odometro').value) || 0,
+    tipo: document.getElementById('m-tipo').value,
+    descricao: document.getElementById('m-descricao').value,
+    oficina: document.getElementById('m-oficina').value,
+    valor: parseFloat(document.getElementById('m-valor').value) || 0,
+    nf: document.getElementById('m-nf').value,
+    prox_revisao: parseInt(document.getElementById('m-prox-rev').value) || null
+  };
+
+  if (id) {
+    await supabaseFetch(`manutencoes?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+  } else {
+    await supabaseFetch('manutencoes', { method: 'POST', body: JSON.stringify(payload) });
+  }
+  closeManutencaoModal();
+  carregarDadosDoSupabase();
+}
+
+async function excluirManutencaoSupabase(id) {
+  if (confirm('Deseja excluir esta manutenção do banco Supabase?')) {
+    await supabaseFetch(`manutencoes?id=eq.${id}`, { method: 'DELETE' });
+    carregarDadosDoSupabase();
+  }
+}
+
+// MODAIS MULTAS
+function openMultaModal() {
+  document.getElementById('form-multa').reset();
+  document.getElementById('mu-id').value = '';
+  document.getElementById('modal-multa').classList.remove('hidden');
+}
+function closeMultaModal() { document.getElementById('modal-multa').classList.add('hidden'); }
+function atualizarPontosMulta() {
+  const g = document.getElementById('mu-gravidade').value;
+  const pts = { 'Leve': 3, 'Média': 4, 'Grave': 5, 'Gravíssima': 7 };
+  document.getElementById('mu-pontos').value = pts[g] || 4;
+}
+
+async function salvarMultaSupabase(e) {
+  e.preventDefault();
+  const id = document.getElementById('mu-id').value;
+  const payload = {
+    data: document.getElementById('mu-data').value,
+    ait: document.getElementById('mu-ait').value,
+    veiculo: document.getElementById('mu-veiculo').value,
+    condutor: document.getElementById('mu-condutor').value,
+    descricao: document.getElementById('mu-descricao').value,
+    gravidade: document.getElementById('mu-gravidade').value,
+    pontos: parseInt(document.getElementById('mu-pontos').value) || 0,
+    valor: parseFloat(document.getElementById('mu-valor').value) || 0,
+    situacao: document.getElementById('mu-situacao').value,
+    pago_por: document.getElementById('mu-pago-por').value
+  };
+
+  if (id) {
+    await supabaseFetch(`multas?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+  } else {
+    await supabaseFetch('multas', { method: 'POST', body: JSON.stringify(payload) });
+  }
+  closeMultaModal();
+  carregarDadosDoSupabase();
+}
+
+async function excluirMultaSupabase(id) {
+  if (confirm('Deseja excluir esta multa do banco Supabase?')) {
+    await supabaseFetch(`multas?id=eq.${id}`, { method: 'DELETE' });
+    carregarDadosDoSupabase();
+  }
+}
+
+// MODAIS SINISTROS
+function openSinistroModal() {
+  document.getElementById('form-sinistro').reset();
+  document.getElementById('si-id').value = '';
+  document.getElementById('modal-sinistro').classList.remove('hidden');
+}
+function closeSinistroModal() { document.getElementById('modal-sinistro').classList.add('hidden'); }
+
+async function salvarSinistroSupabase(e) {
+  e.preventDefault();
+  const id = document.getElementById('si-id').value;
+  const payload = {
+    data: document.getElementById('si-data').value,
+    tipo: document.getElementById('si-tipo').value,
+    veiculo: document.getElementById('si-veiculo').value,
+    condutor: document.getElementById('si-condutor').value,
+    descricao: document.getElementById('si-descricao').value,
+    culpa: document.getElementById('si-culpa').value,
+    valor_prejuizo: parseFloat(document.getElementById('si-prejuizo').value) || 0,
+    franquia_paga: parseFloat(document.getElementById('si-franquia').value) || 0,
+    status: document.getElementById('si-status').value,
+    ressarcir: parseFloat(document.getElementById('si-ressarcir').value) || 0
+  };
+
+  if (id) {
+    await supabaseFetch(`sinistros?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+  } else {
+    await supabaseFetch('sinistros', { method: 'POST', body: JSON.stringify(payload) });
+  }
+  closeSinistroModal();
+  carregarDadosDoSupabase();
+}
+
+async function excluirSinistroSupabase(id) {
+  if (confirm('Deseja excluir este sinistro do banco Supabase?')) {
+    await supabaseFetch(`sinistros?id=eq.${id}`, { method: 'DELETE' });
+    carregarDadosDoSupabase();
+  }
+}
     // EXPORTAR CSV
     function exportCSV() {
       let csvContent = "data:text/csv;charset=utf-8,Veiculo,Condutor,Saida,Devolucao,KM Inicial,KM Final,Finalidade\n";
