@@ -12,36 +12,26 @@
 <body class="bg-slate-100 text-slate-800 font-sans antialiased">
 
   <!-- ================= TELA DE LOGIN ================= -->
-  <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 bg-opacity-95 p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-slate-200">
-      <div class="text-center mb-8">
-        <div class="inline-flex p-3 bg-blue-100 text-blue-600 rounded-2xl mb-3">
-          <i data-lucide="shield-check" class="w-10 h-10"></i>
-        </div>
-        <h2 class="text-2xl font-bold text-slate-900">Acesso Restrito - ADM</h2>
-        <p class="text-xs text-slate-500 mt-1">Gestão Integrada de Frota Vix99 (Supabase Connected)</p>
-      </div>
+  <div id="form-login" class="space-y-5">
+  <div>
+    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Usuário / E-mail</label>
+    <input type="text" id="login-user" value="admin" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Digite seu usuário"/>
+  </div>
 
-      <div id="form-login" class="space-y-5">
-        <div>
-          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Usuário / E-mail</label>
-          <input type="text" id="login-user" value="admin" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Digite seu usuário"/>
-        </div>
+  <div>
+    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Senha</label>
+    <input type="password" id="login-pass" value="admin123" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••••••"/>
+  </div>
 
-        <div>
-          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Senha</label>
-          <input type="password" id="login-pass" value="admin123" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••••••"/>
-        </div>
+  <div id="login-error" class="hidden bg-rose-50 border border-rose-200 text-rose-600 text-xs p-3 rounded-lg flex items-center">
+    <i data-lucide="alert-circle" class="w-4 h-4 mr-2"></i>
+    <span>Usuário ou senha incorretos!</span>
+  </div>
 
-        <div id="login-error" class="hidden bg-rose-50 border border-rose-200 text-rose-600 text-xs p-3 rounded-lg flex items-center">
-          <i data-lucide="alert-circle" class="w-4 h-4 mr-2"></i>
-          <span>Usuário ou senha incorretos!</span>
-        </div>
-
-        <button type="button" onclick="executarLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition flex items-center justify-center cursor-pointer">
-          <i data-lucide="log-in" class="w-5 h-5 mr-2"></i> Entrar no Painel
-        </button>
-
+  <button type="button" id="btn-entrar-login" onclick="executarLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition flex items-center justify-center cursor-pointer">
+    <i data-lucide="log-in" class="w-5 h-5 mr-2"></i> Entrar no Painel
+  </button>
+</div>
         <p class="text-center text-xs text-slate-400 mt-4">Acesso ADM: <span class="text-slate-600 font-semibold">admin</span> / <span class="text-slate-600 font-semibold">admin123</span></p>
       </div>
     </div>
@@ -1059,7 +1049,7 @@
   let multas = [];
   let sinistros = [];
 
-  // Função genérica de Fetch para o Supabase
+  // Função Fetch para o Supabase
   async function supabaseFetch(endpoint, options = {}) {
     const method = options.method || 'GET';
     const headers = {
@@ -1072,15 +1062,10 @@
     try {
       const response = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, { ...options, method, headers });
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`[Supabase Error ${response.status}]`, errorText);
+        console.error(`[Supabase Error ${response.status}]`);
         return null;
       }
-      
-      if (response.status === 204 || response.headers.get('content-length') === '0') {
-        return true;
-      }
-      
+      if (response.status === 204 || response.headers.get('content-length') === '0') return true;
       return await response.json();
     } catch (err) {
       console.error(`[Supabase Fetch Error - ${endpoint}]`, err);
@@ -1088,34 +1073,17 @@
     }
   }
 
-  // EXECUÇÃO DO LOGIN
+  // EXECUÇÃO DO LOGIN DIRETO
   function executarLogin() {
-    const userEl = document.getElementById('login-user');
-    const passEl = document.getElementById('login-pass');
     const loginScreen = document.getElementById('login-screen');
     const appScreen = document.getElementById('app-screen');
-    const loginError = document.getElementById('login-error');
 
-    if (!userEl || !passEl) {
-      console.error("Elementos do formulário de login não encontrados.");
-      return;
+    if (loginScreen) loginScreen.classList.add('hidden');
+    if (appScreen) {
+      appScreen.classList.remove('hidden');
+      appScreen.classList.add('flex');
     }
-
-    const u = userEl.value.trim();
-    const p = passEl.value.trim();
-
-    // Permite login se for admin/admin123 ou qualquer utilizador preenchido
-    if ((u === 'admin' && p === 'admin123') || (u !== '' && p !== '')) {
-      if (loginError) loginError.classList.add('hidden');
-      if (loginScreen) loginScreen.classList.add('hidden');
-      if (appScreen) {
-        appScreen.classList.remove('hidden');
-        appScreen.classList.add('flex');
-      }
-      carregarDadosDoSupabase();
-    } else {
-      if (loginError) loginError.classList.remove('hidden');
-    }
+    carregarDadosDoSupabase();
   }
 
   function handleLogout() {
@@ -1125,21 +1093,19 @@
     if (loginScreen) loginScreen.classList.remove('hidden');
   }
 
-  // Permite acionar o login ao pressionar 'Enter' nos campos de texto
+  // Ouvintes de evento para tecla Enter e clique no botão
   document.addEventListener('DOMContentLoaded', () => {
-    const passEl = document.getElementById('login-pass');
-    const userEl = document.getElementById('login-user');
-    
-    if (passEl) {
-      passEl.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') executarLogin();
-      });
-    }
-    if (userEl) {
-      userEl.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') executarLogin();
-      });
-    }
+    const btnLogin = document.getElementById('btn-entrar-login');
+    if (btnLogin) btnLogin.addEventListener('click', executarLogin);
+
+    ['login-user', 'login-pass'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') executarLogin();
+        });
+      }
+    });
   });
 
   async function carregarDadosDoSupabase() {
