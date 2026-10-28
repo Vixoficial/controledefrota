@@ -269,72 +269,33 @@
           </table>
         </div>
       </section>
-
       <!-- TAB: MANUTENÇÕES -->
-<div id="modal-manutencao" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
-  <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-    <h3 class="font-bold text-lg text-slate-900" id="modal-manutencao-titulo">Nova Manutenção</h3>
-    
-    <form id="form-manutencao" onsubmit="salvarManutencaoSupabase(event)" class="space-y-3">
-      <input type="hidden" id="m-id" />
-
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">Data</label>
-          <input type="date" id="m-data" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" />
+      <section id="tab-manutencao" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex justify-between items-center">
+          <h3 class="font-bold text-slate-800 text-sm">Registro de Manutenções & Revisões</h3>
+          <button onclick="openManutencaoModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer">
+            <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Nova Manutenção
+          </button>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">Veículo</label>
-          <select id="m-veiculo" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none bg-white">
-            <option value="">Selecione...</option>
-          </select>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto p-4">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+              <tr>
+                <th class="p-2 border-b">Data</th>
+                <th class="p-2 border-b">Veículo</th>
+                <th class="p-2 border-b text-right">Odômetro</th>
+                <th class="p-2 border-b">Tipo</th>
+                <th class="p-2 border-b">Serviço</th>
+                <th class="p-2 border-b">Oficina</th>
+                <th class="p-2 border-b text-right">Valor</th>
+                <th class="p-2 border-b">Nº NF</th>
+                <th class="p-2 border-b text-center">Ações</th>
+              </tr>
+            </thead>
+           <tbody id="tb-manutencoes-corpo" class="divide-y divide-slate-100"></tbody>
+          </table>
         </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">Odômetro (KM)</label>
-          <input type="number" id="m-odometro" required min="0" placeholder="Ex: 45000" class="w-full border border-slate-300 rounded p-2 text-xs outline-none" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">Tipo</label>
-          <select id="m-tipo" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none bg-white">
-            <option value="Preventiva">Preventiva</option>
-            <option value="Corretiva">Corretiva</option>
-            <option value="Preditiva">Preditiva</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-600">Serviço Realizado</label>
-        <input type="text" id="m-servico" required placeholder="Ex: Troca de óleo e filtro" class="w-full border border-slate-300 rounded p-2 text-xs outline-none" />
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">Oficina / Fornecedor</label>
-          <input type="text" id="m-oficina" placeholder="Ex: Auto Center Vix" class="w-full border border-slate-300 rounded p-2 text-xs outline-none" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">Valor (R$)</label>
-          <input type="number" id="m-valor" step="0.01" min="0" placeholder="0,00" class="w-full border border-slate-300 rounded p-2 text-xs outline-none" />
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-600">Nº da Nota Fiscal</label>
-        <input type="text" id="m-nf" placeholder="Ex: NF-123456" class="w-full border border-slate-300 rounded p-2 text-xs outline-none" />
-      </div>
-
-      <div class="flex justify-end space-x-2 pt-3 border-t">
-        <button type="button" onclick="closeManutencaoModal()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg cursor-pointer">Cancelar</button>
-        <button type="submit" class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg cursor-pointer">Salvar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
+      </section> 
       <!-- TAB: MULTAS & INFRAÇÕES -->
       <section id="tab-multas" class="tab-content hidden space-y-6">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex justify-between items-center">
