@@ -357,44 +357,71 @@
       carregarDados();
     }
 
-    function carregarDadosDevolucao() {
-      const vId = document.getElementById('devolucao-veiculo').value;
-      const box = document.getElementById('dados-retirada-box');
-
-      if (!vId) {
-        box.classList.add('hidden');
-        return;
-      }
-
-      const v = veiculos.find(item => item.id == vId);
-      if (v) {
-        document.getElementById('dev-motorista-nome').innerText = v.condutor_atual || "Motorista não informado";
-        document.getElementById('dev-km-inicial').innerText = `${v.km_atual || 0} km`;
-        box.classList.remove('hidden');
-      }
-    }
-
     async function registrarDevolucao(e) {
-      e.preventDefault();
-      const vId = document.getElementById('devolucao-veiculo').value;
-      const kmFinal = parseInt(document.getElementById('devolucao-km').value);
+  if (e && e.preventDefault) e.preventDefault();
 
-      const v = veiculos.find(item => item.id == vId);
-      if (kmFinal < (v.km_atual || 0)) {
-        mostrarAlerta(`Erro: O KM final (${kmFinal}) não pode ser menor que o KM inicial (${v.km_atual}).`, "erro");
-        return;
-      }
+  const vId = document.getElementById('devolucao-veiculo').value;
+  const kmFinal = parseInt(document.getElementById('devolucao-km').value, 10);
 
-      await supabaseFetch(`veiculos?id=eq.${vId}`, { 
-        method: 'PATCH', 
-        body: JSON.stringify({ em_uso: false, condutor_atual: null, km_atual: kmFinal }) 
-      });
+  if (!vId) {
+    mostrarAlerta("Selecione um veículo para realizar a devolução.", "erro");
+    return;
+  }
 
-      mostrarAlerta("✓ Devolução confirmada no Supabase!", "sucesso");
-      e.target.reset();
-      document.getElementById('dados-retirada-box').classList.add('hidden');
-      carregarDados();
-    }
+  const v = veiculos.find(item => item.id == vId);
+  if (!v) {
+    mostrarAlerta("Veículo não encontrado.", "erro");
+    return;
+  }
+
+  if (isNaN(kmFinal) || kmFinal < (v.km_atual || 0)) {
+    mostrarAlerta(`Erro: O KM final (${kmFinal}) não pode ser menor que o KM atual/inicial (${v.km_atual || 0}).`, "erro");
+    return;
+  }
+
+  const agora = new Date().toISOString();
+
+  // 1. Busca no Supabase a movimentação em aberto desse veículo (sem data de devolução)
+  const movAberta = await supabaseFetch(`movimentacoes?veiculo_id=eq.${vId}&data_devolucao=is.null&order=id.desc&limit=1`);
+
+  if (movAberta && movAberta.length > 0) {
+    const movId = movAberta[0].id;
+    // Atualiza a tabela 'movimentacoes' com as informações de devolução
+    await supabaseFetch(`movimentacoes?id=eq.${movId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        km_final: kmFinal,
+        data_devolucao: agora
+      })
+    });
+  } else {
+    console.warn("Nenhuma movimentação em aberto encontrada na tabela 'movimentacoes', atualizando apenas o veículo.");
+  }
+
+  // 2. Atualiza a tabela 'veiculos' (libera o veículo e atualiza o KM)
+  const resVeiculo = await supabaseFetch(`veiculos?id=eq.${vId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({
+      em_uso: false,
+      condutor_atual: null,
+      km_atual: kmFinal
+    })
+  });
+
+  if (resVeiculo === null) {
+    mostrarAlerta("Erro de permissão ou rede ao salvar devolução no Supabase.", "erro");
+    return;
+  }
+
+  mostrarAlerta("✓ Devolução confirmada no Supabase!", "sucesso");
+
+  // Limpa formulário e recarrega dados
+  e.target.reset();
+  const box = document.getElementById('dados-retirada-box');
+  if (box) box.classList.add('hidden');
+
+  await carregarDados();
+}
 
     async function salvarAgendamento(e) {
       e.preventDefault();
