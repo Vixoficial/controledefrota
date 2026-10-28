@@ -1211,55 +1211,62 @@
     }
 
     // MODAIS CONDUTOR
-    function openCondutorModal() {
-      const form = document.getElementById('form-condutor');
-      if (form) form.reset();
-      document.getElementById('c-id').value = '';
-      document.getElementById('modal-condutor-titulo').innerText = 'Cadastrar Condutor';
-      document.getElementById('modal-condutor').classList.remove('hidden');
-    }
-    function closeCondutorModal() { document.getElementById('modal-condutor').classList.add('hidden'); }
-    function editCondutorModal(id) {
-      const c = condutores.find(item => item.id === id);
-      if (!c) return;
-      document.getElementById('c-id').value = c.id;
-      document.getElementById('c-nome').value = c.nome;
-      document.getElementById('c-cnh').value = c.cnh;
-      document.getElementById('c-cat').value = c.cat || 'B';
-      document.getElementById('c-validade').value = c.validade || '';
-      document.getElementById('c-funcao').value = c.funcao || '';
-      document.getElementById('modal-condutor-titulo').innerText = 'Editar Condutor';
-      document.getElementById('modal-condutor').classList.remove('hidden');
-    }
+   function editCondutorModal(id) {
+  const c = condutores.find(item => item.id === id);
+  if (!c) return;
+  
+  document.getElementById('c-id').value = c.id;
+  document.getElementById('c-nome').value = c.nome || '';
+  document.getElementById('c-cnh').value = c.cnh || '';
+  document.getElementById('c-cat').value = c.cat || 'B';
+  document.getElementById('c-validade').value = c.validade || '';
+  document.getElementById('c-funcao').value = c.funcao || '';
+  
+  // Preenchimento dos novos campos no Modal (ajuste os IDs do HTML se forem diferentes)
+  if (document.getElementById('c-ear')) document.getElementById('c-ear').value = c.ear || 'Não';
+  if (document.getElementById('c-autorizado-desde')) document.getElementById('c-autorizado-desde').value = c.autorizado_desde || '';
+  if (document.getElementById('c-status')) document.getElementById('c-status').value = c.status || 'Ativo';
+  if (document.getElementById('c-uso-pessoal')) document.getElementById('c-uso-pessoal').value = c.uso_pessoal || 'Não';
+  if (document.getElementById('c-pct-trajeto')) document.getElementById('c-pct-trajeto').value = c.pct_trajeto || '';
+  if (document.getElementById('c-limite-km')) document.getElementById('c-limite-km').value = c.limite_km || '';
 
-    async function salvarCondutorSupabase(e) {
-      e.preventDefault();
-      const id = document.getElementById('c-id').value;
-      const payload = {
-        nome: document.getElementById('c-nome').value,
-        cnh: document.getElementById('c-cnh').value,
-        cat: document.getElementById('c-cat').value,
-        validade: document.getElementById('c-validade').value,
-        funcao: document.getElementById('c-funcao').value,
-        status: "Ativo"
-      };
+  document.getElementById('modal-condutor-titulo').innerText = 'Editar Condutor';
+  document.getElementById('modal-condutor').classList.remove('hidden');
+}
 
-      if (id) {
-        await supabaseFetch(`condutores?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-      } else {
-        await supabaseFetch('condutores', { method: 'POST', body: JSON.stringify(payload) });
-      }
-      closeCondutorModal();
-      carregarDadosDoSupabase();
-    }
+async function salvarCondutorSupabase(e) {
+  e.preventDefault();
+  const id = document.getElementById('c-id').value;
 
-    async function excluirCondutorSupabase(id) {
-      if (confirm('Deseja excluir este condutor do banco Supabase?')) {
-        await supabaseFetch(`condutores?id=eq.${id}`, { method: 'DELETE' });
-        carregarDadosDoSupabase();
-      }
-    }
+  // Captura dos valores do formulário
+  const pctInput = document.getElementById('c-pct-trajeto') ? document.getElementById('c-pct-trajeto').value : null;
+  const limiteInput = document.getElementById('c-limite-km') ? document.getElementById('c-limite-km').value : null;
 
+  const payload = {
+    nome: document.getElementById('c-nome').value,
+    cnh: document.getElementById('c-cnh').value,
+    cat: document.getElementById('c-cat').value,
+    validade: document.getElementById('c-validade').value,
+    funcao: document.getElementById('c-funcao').value,
+    ear: document.getElementById('c-ear') ? document.getElementById('c-ear').value : 'Não',
+    autorizado_desde: document.getElementById('c-autorizado-desde') ? document.getElementById('c-autorizado-desde').value : null,
+    status: document.getElementById('c-status') ? document.getElementById('c-status').value : 'Ativo',
+    uso_pessoal: document.getElementById('c-uso-pessoal') ? document.getElementById('c-uso-pessoal').value : 'Não',
+    
+    // Tratamento de valores numéricos para não enviar string vazia ao Supabase
+    pct_trajeto: pctInput !== "" && pctInput !== null ? parseFloat(pctInput) : null,
+    limite_km: limiteInput !== "" && limiteInput !== null ? parseInt(limiteInput, 10) : null
+  };
+
+  if (id) {
+    await supabaseFetch(`condutores?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+  } else {
+    await supabaseFetch('condutores', { method: 'POST', body: JSON.stringify(payload) });
+  }
+  
+  closeCondutorModal();
+  carregarDadosDoSupabase();
+}
     // MODAIS ABASTECIMENTO
     function openAbastecimentoModal() {
       const form = document.getElementById('form-abastecimento');
