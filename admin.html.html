@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gestão de Frota Vix99 - Painel Administrativo</title>
+  <title>Painel Administrativo - Gestão de Frota Vix99</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -12,81 +12,91 @@
 <body class="bg-slate-100 text-slate-800 font-sans antialiased">
 
   <!-- ================= TELA DE LOGIN ================= -->
-    <div id="login-screen" class="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
-    <div class="bg-slate-800/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-700/50 w-full max-w-md">
-      
-      <!-- Cabeçalho -->
+  <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 bg-opacity-95 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-slate-200">
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 mb-4 shadow-inner">
-          <i data-lucide="truck" class="w-7 h-7"></i>
+        <div class="inline-flex p-3 bg-blue-100 text-blue-600 rounded-2xl mb-3">
+          <i data-lucide="shield-check" class="w-10 h-10"></i>
         </div>
-        <h1 class="text-2xl font-bold text-white tracking-tight">Vix99 Frota</h1>
-        <p class="text-xs text-slate-400 mt-1">Acesse para gerenciar veículos e condutores</p>
+        <h2 class="text-2xl font-bold text-slate-900">Acesso Restrito - ADM</h2>
+        <p class="text-xs text-slate-500 mt-1">Controle de Frota Vix99 (Supabase Connected)</p>
       </div>
 
-      <!-- Dica de Credenciais -->
-      <div class="mb-5 p-3 rounded-xl bg-indigo-950/50 border border-indigo-800/40 text-xs text-indigo-300 flex items-center justify-between">
-        <span>Acesso Padrão:</span>
-        <code class="bg-indigo-900/60 px-2.5 py-1 rounded font-mono text-indigo-200 font-bold">admin / 123456</code>
-      </div>
+      <div id="form-login" class="space-y-5">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Usuário / E-mail</label>
+          <input type="text" id="login-user" value="admin" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Digite seu usuário"/>
+        </div>
 
-      <!-- Alerta de Erro -->
-      <div id="login-error" class="hidden mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center">
-        <i data-lucide="alert-circle" class="w-4 h-4 mr-2 shrink-0"></i>
-        <span>Usuário ou senha incorretos.</span>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Senha</label>
+          <input type="password" id="login-pass" value="admin123" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••••••"/>
+        </div>
+
+        <div id="login-error" class="hidden bg-rose-50 border border-rose-200 text-rose-600 text-xs p-3 rounded-lg flex items-center">
+          <i data-lucide="alert-circle" class="w-4 h-4 mr-2"></i>
+          <span>Usuário ou senha incorretos!</span>
+        </div>
+
+        <button type="button" id="btn-entrar-login" onclick="executarLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition flex items-center justify-center cursor-pointer">
+          <i data-lucide="log-in" class="w-5 h-5 mr-2"></i> Entrar no Painel
+        </button>
       </div>
+      <p class="text-center text-xs text-slate-400 mt-4">Acesso ADM: <span class="text-slate-600 font-semibold">admin</span> / <span class="text-slate-600 font-semibold">admin123</span></p>
+    </div>
+  </div>
 
   <!-- ================= PAINEL ADMINISTRATIVO MAIN ================= -->
   <div id="app-screen" class="hidden flex h-screen overflow-hidden">
 
     <!-- Sidebar Navigation -->
-    <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between hidden md:flex flex-shrink-0">
-      <div class="overflow-y-auto">
-        <div class="p-5 border-b border-slate-800 flex items-center space-x-3">
+    <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between hidden md:flex shrink-0">
+      <div>
+        <div class="p-6 border-b border-slate-800 flex items-center space-x-3">
           <i data-lucide="truck" class="w-8 h-8 text-blue-500"></i>
           <div>
             <h1 class="font-bold text-lg text-white leading-tight">Vix99 Frota</h1>
-            <span class="text-[11px] text-slate-400">Painel Cloud Supabase</span>
+            <span class="text-xs text-slate-400">Painel Cloud Supabase</span>
           </div>
         </div>
 
-        <nav class="mt-4 px-3 space-y-1">
-          <button onclick="switchTab('resumo')" id="btn-resumo" class="nav-btn w-full flex items-center px-3.5 py-2.5 text-xs font-semibold rounded-lg text-white bg-blue-600 transition cursor-pointer">
-            <i data-lucide="layout-dashboard" class="w-4 h-4 mr-2.5"></i> Resumo Geral
+        <nav class="mt-6 px-4 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)]">
+          <button onclick="switchTab('resumo')" id="btn-resumo" class="nav-btn w-full flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-white bg-blue-600 transition cursor-pointer">
+            <i data-lucide="layout-dashboard" class="w-4 h-4 mr-3"></i> Resumo Geral
           </button>
-          <button onclick="switchTab('frota')" id="btn-frota" class="nav-btn w-full flex items-center px-3.5 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
-            <i data-lucide="car" class="w-4 h-4 mr-2.5"></i> Painel de Frota
+          <button onclick="switchTab('frota')" id="btn-frota" class="nav-btn w-full flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
+            <i data-lucide="car" class="w-4 h-4 mr-3"></i> Painel de Frota
           </button>
-          <button onclick="switchTab('condutores')" id="btn-condutores" class="nav-btn w-full flex items-center px-3.5 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
-            <i data-lucide="users" class="w-4 h-4 mr-2.5"></i> Gestão de Condutores
+          <button onclick="switchTab('condutores')" id="btn-condutores" class="nav-btn w-full flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
+            <i data-lucide="users" class="w-4 h-4 mr-3"></i> Gestão de Condutores
           </button>
-          <button onclick="switchTab('relatorio-condutor')" id="btn-relatorio-condutor" class="nav-btn w-full flex items-center px-3.5 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
-            <i data-lucide="user-check" class="w-4 h-4 mr-2.5"></i> Relatório do Condutor
+          <button onclick="switchTab('relatorio-condutor')" id="btn-relatorio-condutor" class="nav-btn w-full flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
+            <i data-lucide="user-check" class="w-4 h-4 mr-3"></i> Relatório do Condutor
           </button>
-          <button onclick="switchTab('apuracao-veiculo')" id="btn-apuracao-veiculo" class="nav-btn w-full flex items-center px-3.5 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
-            <i data-lucide="bar-chart-3" class="w-4 h-4 mr-2.5"></i> Apuração por Veículo
+          <button onclick="switchTab('apuracao-veiculo')" id="btn-apuracao-veiculo" class="nav-btn w-full flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
+            <i data-lucide="calculator" class="w-4 h-4 mr-3"></i> Apuração por Veículo
           </button>
-          <button onclick="switchTab('abastecimento')" id="btn-abastecimento" class="nav-btn w-full flex items-center px-3.5 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
-            <i data-lucide="fuel" class="w-4 h-4 mr-2.5"></i> Diário de Abastecimento
+          <button onclick="switchTab('abastecimento')" id="btn-abastecimento" class="nav-btn w-full flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
+            <i data-lucide="fuel" class="w-4 h-4 mr-3"></i> Diário de Abastecimento
           </button>
-          <button onclick="switchTab('manutencao')" id="btn-manutencao" class="nav-btn w-full flex items-center px-3.5 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
-            <i data-lucide="wrench" class="w-4 h-4 mr-2.5"></i> Manutenções
+          <button onclick="switchTab('manutencao')" id="btn-manutencao" class="nav-btn w-full flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
+            <i data-lucide="wrench" class="w-4 h-4 mr-3"></i> Manutenções
           </button>
-          <button onclick="switchTab('multas')" id="btn-multas" class="nav-btn w-full flex items-center px-3.5 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
-            <i data-lucide="alert-triangle" class="w-4 h-4 mr-2.5"></i> Multas & Infrações
+          <button onclick="switchTab('multas')" id="btn-multas" class="nav-btn w-full flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
+            <i data-lucide="alert-triangle" class="w-4 h-4 mr-3"></i> Multas & Infrações
           </button>
-          <button onclick="switchTab('sinistros')" id="btn-sinistros" class="nav-btn w-full flex items-center px-3.5 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
-            <i data-lucide="shield-alert" class="w-4 h-4 mr-2.5"></i> Sinistros & Avarias
+          <button onclick="switchTab('sinistros')" id="btn-sinistros" class="nav-btn w-full flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
+            <i data-lucide="shield-alert" class="w-4 h-4 mr-3"></i> Sinistros & Avarias
           </button>
-          <button onclick="switchTab('historico')" id="btn-historico" class="nav-btn w-full flex items-center px-3.5 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
-            <i data-lucide="history" class="w-4 h-4 mr-2.5"></i> Histórico & Auditoria
+          <button onclick="switchTab('historico')" id="btn-historico" class="nav-btn w-full flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
+            <i data-lucide="history" class="w-4 h-4 mr-3"></i> Histórico & Auditoria
           </button>
         </nav>
       </div>
 
       <div class="p-4 border-t border-slate-800 flex items-center justify-between">
         <div>
-          <p class="text-xs font-semibold text-slate-200">Administrador Vix99</p>
+          <p class="text-xs font-semibold text-slate-200">Administrador</p>
           <span class="text-[10px] text-emerald-400 font-medium">● Supabase On</span>
         </div>
         <button onclick="handleLogout()" title="Sair do Sistema" class="text-slate-400 hover:text-rose-400 p-2 transition cursor-pointer">
@@ -102,513 +112,271 @@
       <header class="flex items-center justify-between pb-6 border-b border-slate-200 mb-6">
         <div>
           <h2 id="page-title" class="text-2xl font-bold text-slate-900">Resumo Geral da Frota</h2>
-          <p class="text-xs text-slate-500 mt-1">Conectado ao Banco de Dados Supabase em tempo real.</p>
+          <p class="text-xs text-slate-500 mt-1">Sincronizado ao Banco de Dados Supabase em tempo real.</p>
         </div>
         <div class="flex items-center space-x-3">
-          <button onclick="carregarDadosDoSupabase()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow flex items-center cursor-pointer">
+          <button onclick="carregarDadosDoSupabase()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow flex items-center cursor-pointer">
             <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> Sincronizar Banco
-          </button>
-          <button onclick="exportCSV()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow flex items-center cursor-pointer">
-            <i data-lucide="download" class="w-4 h-4 mr-2"></i> Exportar CSV
           </button>
         </div>
       </header>
 
-      <!-- ABA: RESUMO GERAL -->
+      <!-- TAB: RESUMO GERAL -->
       <section id="tab-resumo" class="tab-content space-y-6">
-        <!-- Cards FAIXA DE ALERTAS E KPIS -->
-        <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase">Multas p/ Indicação</p>
-            <h3 class="text-2xl font-bold text-amber-600 mt-1" id="kpi-multas-indicacao">1</h3>
-          </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase">CNH Vencendo/Vencida</p>
-            <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-cnh-vencendo">0</h3>
-          </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase">Veículos Pendentes</p>
-            <h3 class="text-2xl font-bold text-rose-600 mt-1" id="kpi-veiculos-pendencia">2</h3>
-          </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase">Avarias s/ Abrangência</p>
-            <h3 class="text-2xl font-bold text-slate-800 mt-1">0</h3>
-          </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase">KM/Ano Defasado</p>
-            <h3 class="text-2xl font-bold text-slate-800 mt-1">6</h3>
-          </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase">Status Base Dados</p>
-            <h3 class="text-sm font-bold text-emerald-600 mt-2">100% OK</h3>
-          </div>
-        </div>
-
-        <!-- Tabela Veículos Consolidado -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-            <h3 class="font-bold text-slate-800 text-sm">Status Consolidado dos Veículos</h3>
-            <span class="text-xs text-slate-500">Monitoramento Executivo Vix99</span>
-          </div>
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-3" id="kpi-cards"></div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <h3 class="font-bold text-slate-800 text-sm mb-3">Status da Frota (Visão Geral)</h3>
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
+            <table class="w-full text-left text-xs border-collapse">
               <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
                 <tr>
-                  <th class="p-3 border-b">Veículo</th>
-                  <th class="p-3 border-b">Tipo</th>
-                  <th class="p-3 border-b text-right">KM/Ano</th>
-                  <th class="p-3 border-b text-right">Consumo (km/l)</th>
-                  <th class="p-3 border-b text-right">Gasto Mensal</th>
-                  <th class="p-3 border-b text-right">Custo / KM</th>
-                  <th class="p-3 border-b text-center">Multas 12m</th>
-                  <th class="p-3 border-b text-center">Sinistros 12m</th>
-                  <th class="p-3 border-b">Status / Alerta</th>
+                  <th class="p-2 border-b">Veículo</th>
+                  <th class="p-2 border-b">Tipo</th>
+                  <th class="p-2 border-b text-right">KM/Ano</th>
+                  <th class="p-2 border-b text-right">Média km/l</th>
+                  <th class="p-2 border-b text-right">Gasto Mensal</th>
+                  <th class="p-2 border-b text-right">Custo / KM</th>
+                  <th class="p-2 border-b">Status / Pendência</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="tb-resumo-corpo"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Tabela Pessoas Consolidado -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-            <h3 class="font-bold text-slate-800 text-sm">Acompanhamento Executivo de Condutores</h3>
-            <span class="text-xs text-slate-500">Janela Móvel 12 Meses</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
-                <tr>
-                  <th class="p-3 border-b">Condutor</th>
-                  <th class="p-3 border-b">Situação CNH</th>
-                  <th class="p-3 border-b text-right">KM no Ano</th>
-                  <th class="p-3 border-b text-right">Consumo</th>
-                  <th class="p-3 border-b text-center">Multas 12m</th>
-                  <th class="p-3 border-b text-center">Pontos</th>
-                  <th class="p-3 border-b text-center">Sinistros c/ Culpa</th>
-                  <th class="p-3 border-b text-right">Reembolsos Ano</th>
-                  <th class="p-3 border-b text-center">Classificação Risco</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="tb-resumo-pessoas-corpo"></tbody>
+              <tbody id="tb-resumo-corpo" class="divide-y divide-slate-100"></tbody>
             </table>
           </div>
         </div>
       </section>
 
-      <!-- ABA: PAINEL DE FROTA -->
+      <!-- TAB: PAINEL DE FROTA -->
       <section id="tab-frota" class="tab-content hidden space-y-6">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-            <h3 class="font-bold text-slate-800 text-sm">Resumo Anual por Veículo & Indicadores de Custo</h3>
-            <button onclick="openVeiculoModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer shadow">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-slate-800">Cadastro de Veículos & Resumo Anual</h3>
+            <button onclick="openVeiculoModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer">
               <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Cadastrar Veículo
             </button>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
+            <table class="w-full text-left text-xs border-collapse">
               <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
                 <tr>
-                  <th class="p-3 border-b">Veículo</th>
-                  <th class="p-3 border-b text-right">KM Total</th>
-                  <th class="p-3 border-b text-right">% Operac.</th>
-                  <th class="p-3 border-b text-right">Litros/kWh</th>
-                  <th class="p-3 border-b text-right">Consumo Apurado</th>
-                  <th class="p-3 border-b text-right">Consumo Ref.</th>
-                  <th class="p-3 border-b text-right">Desvio</th>
-                  <th class="p-3 border-b text-right">Combustível</th>
-                  <th class="p-3 border-b text-right">Custo Rodagem</th>
-                  <th class="p-3 border-b text-right">Custo/KM</th>
-                  <th class="p-3 border-b text-right">Recebido</th>
-                  <th class="p-3 border-b text-right">Custo Líquido</th>
-                  <th class="p-3 border-b text-right">Custo Total</th>
-                  <th class="p-3 border-b text-center">Ações</th>
+                  <th class="p-2 border-b">Veículo</th>
+                  <th class="p-2 border-b text-right">FIPE</th>
+                  <th class="p-2 border-b text-right">KM/Ano</th>
+                  <th class="p-2 border-b text-right">km/l Ref.</th>
+                  <th class="p-2 border-b text-right">Fixo Mensal</th>
+                  <th class="p-2 border-b">Próx. Revisão</th>
+                  <th class="p-2 border-b text-center">Ações</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="tb-frota-corpo"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Tabela Vencimentos & Revisões -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 bg-slate-50">
-            <h3 class="font-bold text-slate-800 text-sm">Vencimentos, Licenciamento & Revisões Preventivas</h3>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
-                <tr>
-                  <th class="p-3 border-b">Veículo</th>
-                  <th class="p-3 border-b">Licenciamento</th>
-                  <th class="p-3 border-b text-center">Dias Rest.</th>
-                  <th class="p-3 border-b">Seguro até</th>
-                  <th class="p-3 border-b text-center">Dias Rest.</th>
-                  <th class="p-3 border-b text-right">Próx. Revisão (km)</th>
-                  <th class="p-3 border-b text-right">Odômetro Atual</th>
-                  <th class="p-3 border-b text-right">KM Restantes</th>
-                  <th class="p-3 border-b text-center">Status Alerta</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="tb-vencimentos-corpo"></tbody>
+              <tbody id="tb-frota-corpo" class="divide-y divide-slate-100"></tbody>
             </table>
           </div>
         </div>
       </section>
 
-      <!-- ABA: GESTÃO DE CONDUTORES -->
+      <!-- TAB: GESTÃO DE CONDUTORES -->
       <section id="tab-condutores" class="tab-content hidden space-y-6">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center justify-between">
-          <div>
-            <h3 class="text-sm font-bold text-slate-800">Painel de Condutores & Monitoramento CTB</h3>
-            <p class="text-xs text-slate-500">Janela móvel de 12 meses a partir da data de referência.</p>
-          </div>
-          <div class="flex items-center space-x-3">
-            <label class="text-xs font-semibold text-slate-600">Data de referência:</label>
-            <input type="date" id="ref-date-condutor" value="2026-10-27" class="border border-slate-300 rounded p-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500"/>
-            <button onclick="openCondutorModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer shadow">
-              <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Cadastrar Condutor
-            </button>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
-                <tr>
-                  <th class="p-3 border-b">Condutor</th>
-                  <th class="p-3 border-b">Situac. CNH</th>
-                  <th class="p-3 border-b text-right">KM Rodado</th>
-                  <th class="p-3 border-b text-right">Horas</th>
-                  <th class="p-3 border-b text-right">Vel. Média</th>
-                  <th class="p-3 border-b text-right">Litros/kWh</th>
-                  <th class="p-3 border-b text-right">Consumo</th>
-                  <th class="p-3 border-b text-center">Multas 12m</th>
-                  <th class="p-3 border-b text-center">Pontos 12m</th>
-                  <th class="p-3 border-b text-center">Gravíssimas</th>
-                  <th class="p-3 border-b text-center">Limite</th>
-                  <th class="p-3 border-b text-right">% Limite</th>
-                  <th class="p-3 border-b text-right">Valor Multas</th>
-                  <th class="p-3 border-b text-center">Sinistros 12m</th>
-                  <th class="p-3 border-b text-right">Custo Sinistros</th>
-                  <th class="p-3 border-b text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="tb-condutores-corpo"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ABA: RELATÓRIO INDIVIDUAL DO CONDUTOR -->
-      <section id="tab-relatorio-condutor" class="tab-content hidden space-y-6">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex justify-between items-center">
-          <div class="flex items-center space-x-3">
-            <label class="text-xs font-bold text-slate-700 uppercase">Selecione o Condutor:</label>
-            <select id="sel-relatorio-condutor" onchange="renderRelatorioCondutor()" class="border border-slate-300 rounded-lg p-2 text-xs font-semibold outline-none focus:ring-2 focus:ring-blue-500 w-64 bg-slate-50">
-            </select>
-          </div>
-          <span class="text-xs text-slate-500 font-medium">Relatório e Apuração de Reembolsos Mensais</span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <!-- Cadastro do Condutor -->
-          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-2">
-            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 flex items-center">
-              <i data-lucide="id-card" class="w-4 h-4 mr-2 text-blue-600"></i> Ficha do Condutor
-            </h3>
-            <div id="ficha-condutor-detalhes" class="text-xs space-y-1.5 text-slate-600"></div>
-          </div>
-
-          <!-- Desempenho 12 Meses -->
-          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-2 md:col-span-2">
-            <h3 class="font-bold text-slate-800 text-sm border-b pb-2 flex items-center">
-              <i data-lucide="activity" class="w-4 h-4 mr-2 text-blue-600"></i> Desempenho & Pontuação CTB (Últimos 12 Meses)
-            </h3>
-            <div id="desempenho-condutor-detalhes" class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs"></div>
-          </div>
-        </div>
-
-        <!-- Apuração Mensal Reembolso -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-            <div>
-              <h3 class="font-bold text-slate-800 text-sm">Apuração Individual & Reembolso Mês a Mês</h3>
-              <p class="text-xs text-slate-500">Valores consolidados por trajeto, uso particular e acertos financeiros com controle de pagamento ADM.</p>
-            </div>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
-                <tr>
-                  <th class="p-3 border-b">Mês</th>
-                  <th class="p-3 border-b text-right">KM Trajeto</th>
-                  <th class="p-3 border-b text-right">KM Lazer</th>
-                  <th class="p-3 border-b text-right">Reembolso Trajeto</th>
-                  <th class="p-3 border-b text-right">Reembolso Lazer</th>
-                  <th class="p-3 border-b text-right font-bold text-slate-900">Total a Reembolsar</th>
-                  <th class="p-3 border-b text-right text-rose-600 font-bold">Ressarcimentos</th>
-                  <th class="p-3 border-b text-right font-bold text-blue-600">Total Geral</th>
-                  <th class="p-3 border-b text-center">Status Pagamento (ADM)</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="tb-relatorio-reembolso-corpo"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ABA: APURAÇÃO MENSAL POR VEÍCULO -->
-      <section id="tab-apuracao-veiculo" class="tab-content hidden space-y-6">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex justify-between items-center">
-          <div class="flex items-center space-x-4">
-            <div>
-              <label class="text-xs font-bold text-slate-700 uppercase block mb-1">Ano Base do Controle:</label>
-              <select id="sel-ano-apuracao" onchange="renderApuracaoVeiculo()" class="border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50">
-                <option value="2027">2027</option>
-                <option value="2026">2026</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-xs font-bold text-slate-700 uppercase block mb-1">Filtrar por Veículo:</label>
-              <select id="sel-veiculo-apuracao" onchange="renderApuracaoVeiculo()" class="border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50">
-                <option value="">Todos os Veículos</option>
-              </select>
-            </div>
-          </div>
-          <span class="text-xs text-slate-500 font-medium">Rateios de Rodagem, Trajeto e Custo Corporativo</span>
-        </div>
-
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
-                <tr>
-                  <th class="p-2.5 border-b">Mês</th>
-                  <th class="p-2.5 border-b">Veículo</th>
-                  <th class="p-2.5 border-b text-right">Odôm. Inicial</th>
-                  <th class="p-2.5 border-b text-right">Odôm. Final</th>
-                  <th class="p-2.5 border-b text-right">KM Total</th>
-                  <th class="p-2.5 border-b text-right">KM Empresa</th>
-                  <th class="p-2.5 border-b text-right">KM Trajeto</th>
-                  <th class="p-2.5 border-b text-right">KM Lazer</th>
-                  <th class="p-2.5 border-b text-right">Litros/kWh</th>
-                  <th class="p-2.5 border-b text-right">Combustível R$</th>
-                  <th class="p-2.5 border-b text-right">Consumo km/l</th>
-                  <th class="p-2.5 border-b text-right">R$/km Comb.</th>
-                  <th class="p-2.5 border-b text-right">R$/km Pneus</th>
-                  <th class="p-2.5 border-b text-right">R$/km Manut.</th>
-                  <th class="p-2.5 border-b text-right">R$/km Deprec.</th>
-                  <th class="p-2.5 border-b text-right">Fixos Mês</th>
-                  <th class="p-2.5 border-b text-right font-bold text-amber-700">Total Condutores</th>
-                  <th class="p-2.5 border-b text-right font-bold text-emerald-700">Fica c/ Empresa</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="tb-apuracao-veiculo-corpo"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ABA: DIÁRIO DE ABASTECIMENTO -->
-      <section id="tab-abastecimento" class="tab-content hidden space-y-6">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-            <div>
-              <h3 class="font-bold text-slate-800 text-sm">Registros do Diário de Abastecimento</h3>
-              <p class="text-xs text-slate-500">Um registro por abastecimento ou recarga (kWh para elétricos).</p>
-            </div>
-            <button onclick="openAbastecimentoModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer shadow">
-              <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Novo Abastecimento
-            </button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
-                <tr>
-                  <th class="p-3 border-b">Data</th>
-                  <th class="p-3 border-b">Veículo</th>
-                  <th class="p-3 border-b">Posto / Local</th>
-                  <th class="p-3 border-b">Combustível</th>
-                  <th class="p-3 border-b text-right">R$/litro ou kWh</th>
-                  <th class="p-3 border-b text-right">Litros ou kWh</th>
-                  <th class="p-3 border-b text-right font-bold text-blue-600">Valor Total</th>
-                  <th class="p-3 border-b text-right">Odômetro</th>
-                  <th class="p-3 border-b">Condutor</th>
-                  <th class="p-3 border-b">Nº Cupom/NF</th>
-                  <th class="p-3 border-b">Observações</th>
-                  <th class="p-3 border-b text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="tb-abastecimento-corpo"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ABA: MANUTENÇÕES -->
-      <section id="tab-manutencao" class="tab-content hidden space-y-6">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-            <div>
-              <h3 class="font-bold text-slate-800 text-sm">Registro de Manutenção & Oficina</h3>
-              <p class="text-xs text-slate-500">Pneus e sinistros não entram no cálculo direto do R$/km.</p>
-            </div>
-            <button onclick="openManutencaoModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer shadow">
-              <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Nova Manutenção
-            </button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
-                <tr>
-                  <th class="p-3 border-b">Data</th>
-                  <th class="p-3 border-b">Veículo</th>
-                  <th class="p-3 border-b text-right">Odômetro</th>
-                  <th class="p-3 border-b">Tipo</th>
-                  <th class="p-3 border-b">Descrição do Serviço</th>
-                  <th class="p-3 border-b">Fornecedor / Oficina</th>
-                  <th class="p-3 border-b text-right font-bold">Valor</th>
-                  <th class="p-3 border-b">Nº NF</th>
-                  <th class="p-3 border-b text-right">Próx. Revisão (km)</th>
-                  <th class="p-3 border-b text-center">Compõe R$/km</th>
-                  <th class="p-3 border-b text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="tb-manutencao-corpo"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ABA: MULTAS & INFRAÇÕES -->
-      <section id="tab-multas" class="tab-content hidden space-y-6">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-            <div>
-              <h3 class="font-bold text-slate-800 text-sm">Registro de Multas & Infrações (AIT)</h3>
-              <p class="text-xs text-slate-500">Atenção: Indicação perdida gera segunda multa do Art. 257 CTB.</p>
-            </div>
-            <button onclick="openMultaModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer shadow">
-              <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Nova Multa
-            </button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
-                <tr>
-                  <th class="p-3 border-b">Data Infração</th>
-                  <th class="p-3 border-b">Nº do AIT</th>
-                  <th class="p-3 border-b">Veículo</th>
-                  <th class="p-3 border-b">Condutor</th>
-                  <th class="p-3 border-b">Local</th>
-                  <th class="p-3 border-b">Descrição</th>
-                  <th class="p-3 border-b text-center">Gravidade</th>
-                  <th class="p-3 border-b text-center">Pontos</th>
-                  <th class="p-3 border-b text-right">Valor</th>
-                  <th class="p-3 border-b">Situação</th>
-                  <th class="p-3 border-b">Pago por</th>
-                  <th class="p-3 border-b">A ressarcir?</th>
-                  <th class="p-3 border-b">Mês cobrança</th>
-                  <th class="p-3 border-b text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="tb-multas-corpo"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ABA: SINISTROS & AVARIAS -->
-      <section id="tab-sinistros" class="tab-content hidden space-y-6">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-            <div>
-              <h3 class="font-bold text-slate-800 text-sm">Registro de Sinistros & Avarias</h3>
-              <p class="text-xs text-slate-500">Cobrança ao condutor segundo Cláusula 10 do acordo interno.</p>
-            </div>
-            <button onclick="openSinistroModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer shadow">
-              <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Novo Sinistro
-            </button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
-                <tr>
-                  <th class="p-3 border-b">Data</th>
-                  <th class="p-3 border-b">Veículo</th>
-                  <th class="p-3 border-b">Condutor</th>
-                  <th class="p-3 border-b">Tipo</th>
-                  <th class="p-3 border-b">Descrição</th>
-                  <th class="p-3 border-b">Culpa</th>
-                  <th class="p-3 border-b text-right">Valor Prejuízo</th>
-                  <th class="p-3 border-b text-right">Franquia Paga</th>
-                  <th class="p-3 border-b text-center">Seguro?</th>
-                  <th class="p-3 border-b">Status</th>
-                  <th class="p-3 border-b text-right font-bold text-rose-600">A ressarcir</th>
-                  <th class="p-3 border-b">Mês cobrança</th>
-                  <th class="p-3 border-b text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="tb-sinistros-corpo"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ABA: HISTÓRICO & AUDITORIA -->
-      <section id="tab-historico" class="tab-content hidden space-y-6">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-          <h3 class="text-xs font-bold text-slate-800 mb-3 flex items-center">
-            <i data-lucide="filter" class="w-4 h-4 mr-2 text-blue-600"></i> Filtrar Histórico de Deslocamentos
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-500 mb-1">Data/Hora Inicial</label>
-              <input type="datetime-local" id="filtro-data-inicio" onchange="renderHistorico()" class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-blue-500"/>
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-500 mb-1">Data/Hora Final</label>
-              <input type="datetime-local" id="filtro-data-fim" onchange="renderHistorico()" class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-blue-500"/>
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-500 mb-1">Veículo</label>
-              <select id="filtro-veiculo" onchange="renderHistorico()" class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Todos os Veículos</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-500 mb-1">Condutor</label>
-              <select id="filtro-condutor" onchange="renderHistorico()" class="w-full border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Todos os Condutores</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-            <h3 class="font-bold text-slate-800 text-sm">Registros de Saída, Devolução & Finalidade</h3>
-            <span class="text-xs text-slate-500" id="total-registros-count">0 registros encontrados</span>
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-slate-800">Painel de Motoristas</h3>
+            <button onclick="openCondutorModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer">
+              <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Novo Condutor
+            </button>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
+            <table class="w-full text-left text-xs border-collapse">
               <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
                 <tr>
-                  <th class="p-3 border-b">Veículo</th>
-                  <th class="p-3 border-b">Condutor</th>
-                  <th class="p-3 border-b">Saída</th>
-                  <th class="p-3 border-b">Devolução</th>
-                  <th class="p-3 border-b text-right">KM Inicial</th>
-                  <th class="p-3 border-b text-right">KM Final</th>
-                  <th class="p-3 border-b text-right">KM Rodado</th>
-                  <th class="p-3 border-b">Finalidade</th>
-                  <th class="p-3 border-b text-center">Status Custo</th>
+                  <th class="p-2 border-b">Condutor</th>
+                  <th class="p-2 border-b">CNH / Categ.</th>
+                  <th class="p-2 border-b">Validade</th>
+                  <th class="p-2 border-b">Função</th>
+                  <th class="p-2 border-b text-center">Pontos CTB (12m)</th>
+                  <th class="p-2 border-b text-center">Situação</th>
+                  <th class="p-2 border-b text-center">Ações</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700" id="tb-historico-corpo"></tbody>
+              <tbody id="tb-condutores-corpo" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: RELATÓRIO DO CONDUTOR -->
+      <section id="tab-relatorio-condutor" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Selecione o Condutor:</label>
+          <select id="sel-rel-condutor" onchange="renderRelatorioCondutor()" class="border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-1/3">
+          </select>
+        </div>
+        <div id="rel-condutor-detalhes" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 text-xs space-y-4">
+        </div>
+      </section>
+
+      <!-- TAB: APURAÇÃO MENSAL POR VEÍCULO -->
+      <section id="tab-apuracao-veiculo" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Ano-Base:</label>
+            <input type="number" id="apuracao-ano" value="2027" class="border border-slate-300 rounded p-1.5 text-xs outline-none w-24"/>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-4">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-[11px] border-collapse">
+              <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                <tr>
+                  <th class="p-2 border-b">Mês / Veículo</th>
+                  <th class="p-2 border-b text-right">KM Total</th>
+                  <th class="p-2 border-b text-right">KM Trajeto</th>
+                  <th class="p-2 border-b text-right">KM Lazer</th>
+                  <th class="p-2 border-b text-right">Litros/kWh</th>
+                  <th class="p-2 border-b text-right">Combustível Total</th>
+                  <th class="p-2 border-b text-right">Devido Condutores</th>
+                  <th class="p-2 border-b text-right">Fica c/ Empresa</th>
+                </tr>
+              </thead>
+              <tbody id="tb-apuracao-veiculo-corpo" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: DIÁRIO DE ABASTECIMENTO -->
+      <section id="tab-abastecimento" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex justify-between items-center">
+          <h3 class="font-bold text-slate-800 text-sm">Registros de Abastecimento</h3>
+          <button onclick="openAbastecimentoModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer">
+            <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Novo Abastecimento
+          </button>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto p-4">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+              <tr>
+                <th class="p-2 border-b">Data</th>
+                <th class="p-2 border-b">Veículo</th>
+                <th class="p-2 border-b">Posto</th>
+                <th class="p-2 border-b">Combustível</th>
+                <th class="p-2 border-b text-right">Preço/Un.</th>
+                <th class="p-2 border-b text-right">Litros/kWh</th>
+                <th class="p-2 border-b text-right">Total (R$)</th>
+                <th class="p-2 border-b text-right">Odômetro</th>
+                <th class="p-2 border-b">Condutor</th>
+                <th class="p-2 border-b text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tb-abastecimentos-corpo" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB: MANUTENÇÕES -->
+      <section id="tab-manutencao" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex justify-between items-center">
+          <h3 class="font-bold text-slate-800 text-sm">Registro de Manutenções & Revisões</h3>
+          <button onclick="openManutencaoModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer">
+            <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Nova Manutenção
+          </button>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto p-4">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+              <tr>
+                <th class="p-2 border-b">Data</th>
+                <th class="p-2 border-b">Veículo</th>
+                <th class="p-2 border-b text-right">Odômetro</th>
+                <th class="p-2 border-b">Tipo</th>
+                <th class="p-2 border-b">Serviço</th>
+                <th class="p-2 border-b">Oficina</th>
+                <th class="p-2 border-b text-right">Valor</th>
+                <th class="p-2 border-b">Nº NF</th>
+                <th class="p-2 border-b text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tb-manutencao-corpo" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB: MULTAS & INFRAÇÕES -->
+      <section id="tab-multas" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex justify-between items-center">
+          <h3 class="font-bold text-slate-800 text-sm">Registro de Multas CTB</h3>
+          <button onclick="openMultaModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer">
+            <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Nova Multa
+          </button>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto p-4">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+              <tr>
+                <th class="p-2 border-b">Data</th>
+                <th class="p-2 border-b">Nº AIT</th>
+                <th class="p-2 border-b">Veículo</th>
+                <th class="p-2 border-b">Condutor</th>
+                <th class="p-2 border-b">Gravidade</th>
+                <th class="p-2 border-b text-center">Pontos</th>
+                <th class="p-2 border-b text-right">Valor</th>
+                <th class="p-2 border-b">Situação</th>
+                <th class="p-2 border-b text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tb-multas-corpo" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB: SINISTROS & AVARIAS -->
+      <section id="tab-sinistros" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex justify-between items-center">
+          <h3 class="font-bold text-slate-800 text-sm">Ocorrências, Sinistros & Avarias</h3>
+          <button onclick="openSinistroModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer">
+            <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Novo Sinistro
+          </button>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto p-4">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+              <tr>
+                <th class="p-2 border-b">Data</th>
+                <th class="p-2 border-b">Veículo</th>
+                <th class="p-2 border-b">Condutor</th>
+                <th class="p-2 border-b">Tipo</th>
+                <th class="p-2 border-b">Culpa</th>
+                <th class="p-2 border-b text-right">Prejuízo</th>
+                <th class="p-2 border-b text-right">Franquia</th>
+                <th class="p-2 border-b">Status</th>
+                <th class="p-2 border-b text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tb-sinistros-corpo" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB: HISTÓRICO & AUDITORIA -->
+      <section id="tab-historico" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex justify-between items-center">
+          <h3 class="font-bold text-slate-800 text-sm">Movimentações da Frota</h3>
+          <button onclick="exportCSV()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center cursor-pointer">
+            <i data-lucide="download" class="w-4 h-4 mr-1"></i> Exportar CSV
+          </button>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                <tr>
+                  <th class="p-2 border-b">Veículo</th>
+                  <th class="p-2 border-b">Condutor</th>
+                  <th class="p-2 border-b">Saída</th>
+                  <th class="p-2 border-b">Devolução</th>
+                  <th class="p-2 border-b text-right">KM Inic.</th>
+                  <th class="p-2 border-b text-right">KM Fin.</th>
+                  <th class="p-2 border-b">Finalidade</th>
+                </tr>
+              </thead>
+              <tbody id="tb-historico-corpo" class="divide-y divide-slate-100"></tbody>
             </table>
           </div>
         </div>
@@ -617,22 +385,20 @@
     </main>
   </div>
 
-  <!-- ================= MODAIS CRUD ================= -->
-
-  <!-- MODAL: CADASTRAR/EDITAR VEÍCULO -->
+  <!-- MODAL: CADASTRAR VEÍCULO -->
   <div id="modal-veiculo" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
-      <h3 id="modal-veiculo-title" class="font-bold text-base text-slate-900">Cadastrar Novo Veículo (Supabase)</h3>
+      <h3 class="font-bold text-lg text-slate-900" id="modal-veiculo-titulo">Cadastrar Veículo</h3>
       <form id="form-veiculo" onsubmit="salvarVeiculoSupabase(event)" class="space-y-3">
-        <input type="hidden" id="v-id" value=""/>
+        <input type="hidden" id="v-id"/>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600">Placa</label>
-            <input type="text" id="v-placa" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="ABC1D23"/>
+            <input type="text" id="v-placa" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600">Modelo / Ano</label>
-            <input type="text" id="v-modelo" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Kwid Zen 2022"/>
+            <input type="text" id="v-modelo" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
@@ -647,98 +413,71 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600">Valor FIPE (R$)</label>
-            <input type="number" id="v-fipe" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="48000"/>
+            <input type="number" id="v-fipe" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600">KM Estimado/Ano</label>
-            <input type="number" id="v-km-ano" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="24000"/>
+            <input type="number" id="v-km-ano" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600">Consumo Ref. (km/l)</label>
-            <input type="number" step="0.1" id="v-kml" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="13.5"/>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">Vencimento Licenciamento</label>
-            <input type="date" id="v-licenciam" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">Seguro Válido Até</label>
-            <input type="date" id="v-seguro" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+            <input type="number" step="0.1" id="v-kml" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeVeiculoModal()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg cursor-pointer">Cancelar</button>
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg cursor-pointer">Salvar Veículo</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg cursor-pointer">Salvar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: CADASTRAR/EDITAR CONDUTOR -->
+  <!-- MODAL: CADASTRAR CONDUTOR -->
   <div id="modal-condutor" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
-      <h3 id="modal-condutor-title" class="font-bold text-base text-slate-900">Cadastrar Novo Condutor (Supabase)</h3>
+      <h3 class="font-bold text-lg text-slate-900" id="modal-condutor-titulo">Cadastrar Condutor</h3>
       <form id="form-condutor" onsubmit="salvarCondutorSupabase(event)" class="space-y-3">
-        <input type="hidden" id="c-id" value=""/>
+        <input type="hidden" id="c-id"/>
         <div>
           <label class="block text-xs font-semibold text-slate-600">Nome Completo</label>
-          <input type="text" id="c-nome" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Valdir C. Filho"/>
+          <input type="text" id="c-nome" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
         </div>
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600">Nº CNH</label>
-            <input type="text" id="c-cnh" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="01234567890"/>
+            <input type="text" id="c-cnh" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600">Categoria</label>
-            <input type="text" id="c-cat" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="AB"/>
+            <input type="text" id="c-cat" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Ex: AB"/>
           </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600">Validade CNH</label>
             <input type="date" id="c-validade" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600">Função</label>
-            <input type="text" id="c-funcao" class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Engenheiro Responsável"/>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">EAR (Atividade Remunerada)</label>
-            <select id="c-ear" class="w-full border border-slate-300 rounded p-2 text-xs outline-none">
-              <option value="Sim">Sim</option>
-              <option value="Não" selected>Não</option>
-            </select>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">% Trajeto que lhe cabe</label>
-            <input type="number" id="c-trajeto-pct" value="50" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">Limite Diário Trajeto (km)</label>
-            <input type="number" id="c-limite-diario" value="40" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+            <input type="text" id="c-funcao" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeCondutorModal()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg cursor-pointer">Cancelar</button>
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg cursor-pointer">Salvar Condutor</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg cursor-pointer">Salvar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: CADASTRAR/EDITAR ABASTECIMENTO -->
+  <!-- MODAL: CADASTRAR ABASTECIMENTO -->
   <div id="modal-abastecimento" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
-      <h3 id="modal-abastecimento-title" class="font-bold text-base text-slate-900">Novo Registro de Abastecimento</h3>
+      <h3 class="font-bold text-lg text-slate-900" id="modal-abastecimento-titulo">Registrar Abastecimento</h3>
       <form id="form-abastecimento" onsubmit="salvarAbastecimentoSupabase(event)" class="space-y-3">
-        <input type="hidden" id="a-id" value=""/>
+        <input type="hidden" id="a-id"/>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600">Data</label>
@@ -752,7 +491,7 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600">Posto / Local</label>
-            <input type="text" id="a-posto" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Posto Ipiranga / Shell"/>
+            <input type="text" id="a-posto" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Ex: Posto Ipiranga"/>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600">Combustível</label>
@@ -760,53 +499,49 @@
               <option>Gasolina comum</option>
               <option>Gasolina aditivada</option>
               <option>Etanol</option>
-              <option>Diesel S10</option>
+              <option>Diesel</option>
               <option>Elétrico (kWh)</option>
             </select>
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-600">R$/litro ou kWh</label>
-            <input type="number" step="0.001" id="a-preco-unit" oninput="calcularTotalAbastecimento()" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="6.20"/>
+            <label class="block text-xs font-semibold text-slate-600">R$/Litro ou kWh</label>
+            <input type="number" step="0.001" id="a-preco" oninput="calcularTotalAbastecimento()" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Litros ou kWh</label>
-            <input type="number" step="0.01" id="a-qtd" oninput="calcularTotalAbastecimento()" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="45.0"/>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">Valor Total (R$)</label>
-            <input type="number" step="0.01" id="a-total" readonly class="w-full border border-slate-200 bg-slate-100 rounded p-2 text-xs font-bold text-blue-600 outline-none"/>
+            <label class="block text-xs font-semibold text-slate-600">Litros / kWh</label>
+            <input type="number" step="0.01" id="a-litros" oninput="calcularTotalAbastecimento()" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Odômetro Atual (km)</label>
-            <input type="number" id="a-odometro" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+            <label class="block text-xs font-semibold text-slate-600">Valor Total (R$)</label>
+            <input type="number" step="0.01" id="a-total" readonly class="w-full border border-slate-200 bg-slate-100 rounded p-2 text-xs outline-none font-bold"/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Condutor</label>
-            <select id="a-condutor" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"></select>
+            <label class="block text-xs font-semibold text-slate-600">Odômetro (KM)</label>
+            <input type="number" id="a-odometro" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600">Nº Cupom / NF</label>
-          <input type="text" id="a-nf" class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="NF-123456"/>
+          <label class="block text-xs font-semibold text-slate-600">Condutor</label>
+          <select id="a-condutor" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"></select>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
           <button type="button" onclick="closeAbastecimentoModal()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg cursor-pointer">Cancelar</button>
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg cursor-pointer">Salvar Registro</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg cursor-pointer">Salvar Abastecimento</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: CADASTRAR/EDITAR MANUTENÇÃO -->
+  <!-- MODAL: CADASTRAR MANUTENÇÃO -->
   <div id="modal-manutencao" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
-      <h3 id="modal-manutencao-title" class="font-bold text-base text-slate-900">Novo Registro de Manutenção</h3>
+      <h3 class="font-bold text-lg text-slate-900" id="modal-manutencao-titulo">Registrar Manutenção</h3>
       <form id="form-manutencao" onsubmit="salvarManutencaoSupabase(event)" class="space-y-3">
-        <input type="hidden" id="m-id" value=""/>
+        <input type="hidden" id="m-id"/>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600">Data</label>
@@ -819,49 +554,41 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Odômetro (km)</label>
+            <label class="block text-xs font-semibold text-slate-600">Odômetro (KM)</label>
             <input type="number" id="m-odometro" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Tipo</label>
+            <label class="block text-xs font-semibold text-slate-600">Tipo de Serviço</label>
             <select id="m-tipo" class="w-full border border-slate-300 rounded p-2 text-xs outline-none">
               <option>Preventiva (programada)</option>
               <option>Desgaste por uso</option>
               <option>Corretiva</option>
               <option>Pneus</option>
-              <option>Acidente / Vandalismo</option>
             </select>
           </div>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600">Descrição do Serviço</label>
-          <input type="text" id="m-descricao" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Revisão de 110.000 km, óleo e filtros"/>
+          <input type="text" id="m-descricao" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Ex: Troca de óleo e filtros"/>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Fornecedor / Oficina</label>
-            <input type="text" id="m-oficina" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Oficina Credenciada"/>
+            <label class="block text-xs font-semibold text-slate-600">Oficina / Fornecedor</label>
+            <input type="text" id="m-oficina" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600">Valor Total (R$)</label>
-            <input type="number" step="0.01" id="m-valor" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="680.00"/>
+            <input type="number" step="0.01" id="m-valor" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Nº NF</label>
-            <input type="text" id="m-nf" class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="NF-4205"/>
+            <label class="block text-xs font-semibold text-slate-600">Nº da Nota Fiscal</label>
+            <input type="text" id="m-nf" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Próx. Revisão (km)</label>
+            <label class="block text-xs font-semibold text-slate-600">Próxima Revisão (KM)</label>
             <input type="number" id="m-prox-rev" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">Compõe R$/km?</label>
-            <select id="m-compoe-rkm" class="w-full border border-slate-300 rounded p-2 text-xs outline-none">
-              <option value="Sim">Sim</option>
-              <option value="Não">Não</option>
-            </select>
           </div>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
@@ -872,12 +599,12 @@
     </div>
   </div>
 
-  <!-- MODAL: CADASTRAR/EDITAR MULTA -->
+  <!-- MODAL: CADASTRAR MULTA -->
   <div id="modal-multa" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
-      <h3 id="modal-multa-title" class="font-bold text-base text-slate-900">Novo Registro de Multa CTB</h3>
+      <h3 class="font-bold text-lg text-slate-900" id="modal-multa-titulo">Registrar Multa / Infração</h3>
       <form id="form-multa" onsubmit="salvarMultaSupabase(event)" class="space-y-3">
-        <input type="hidden" id="mu-id" value=""/>
+        <input type="hidden" id="mu-id"/>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600">Data da Infração</label>
@@ -885,7 +612,7 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600">Nº do AIT</label>
-            <input type="text" id="mu-ait" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="AIT70310"/>
+            <input type="text" id="mu-ait" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Ex: AIT70310"/>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
@@ -899,17 +626,13 @@
           </div>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600">Local da Infração</label>
-          <input type="text" id="mu-local" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Vitória/ES - Av. Brasil"/>
-        </div>
-        <div>
           <label class="block text-xs font-semibold text-slate-600">Descrição da Infração</label>
-          <input type="text" id="mu-descricao" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Velocidade superior em até 20%"/>
+          <input type="text" id="mu-descricao" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
         </div>
         <div class="grid grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600">Gravidade</label>
-            <select id="mu-gravidade" onchange="calcularPontosGravidade()" class="w-full border border-slate-300 rounded p-2 text-xs outline-none">
+            <select id="mu-gravidade" onchange="atualizarPontosMulta()" class="w-full border border-slate-300 rounded p-2 text-xs outline-none">
               <option value="Leve">Leve (3 pts)</option>
               <option value="Média" selected>Média (4 pts)</option>
               <option value="Grave">Grave (5 pts)</option>
@@ -917,15 +640,15 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Pontos (CTB)</label>
-            <input type="number" id="mu-pontos" readonly value="4" class="w-full border border-slate-200 bg-slate-100 font-bold rounded p-2 text-xs outline-none"/>
+            <label class="block text-xs font-semibold text-slate-600">Pontos CTB</label>
+            <input type="number" id="mu-pontos" readonly value="4" class="w-full border border-slate-200 bg-slate-100 rounded p-2 text-xs outline-none font-bold text-center"/>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600">Valor (R$)</label>
-            <input type="number" step="0.01" id="mu-valor" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="130.16"/>
+            <input type="number" step="0.01" id="mu-valor" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600">Situação</label>
             <select id="mu-situacao" class="w-full border border-slate-300 rounded p-2 text-xs outline-none">
@@ -936,16 +659,12 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Pago por</label>
+            <label class="block text-xs font-semibold text-slate-600">Pago Por</label>
             <select id="mu-pago-por" class="w-full border border-slate-300 rounded p-2 text-xs outline-none">
               <option>Condutor</option>
               <option>Empresa</option>
               <option>Pendente</option>
             </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">Mês Cobrança</label>
-            <input type="text" id="mu-mes-cobranca" class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="mar/2027"/>
           </div>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
@@ -956,44 +675,44 @@
     </div>
   </div>
 
-  <!-- MODAL: CADASTRAR/EDITAR SINISTRO -->
+  <!-- MODAL: CADASTRAR SINISTRO -->
   <div id="modal-sinistro" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
-      <h3 id="modal-sinistro-title" class="font-bold text-base text-slate-900">Novo Registro de Sinistro / Avaria</h3>
+      <h3 class="font-bold text-lg text-slate-900" id="modal-sinistro-titulo">Registrar Sinistro / Avaria</h3>
       <form id="form-sinistro" onsubmit="salvarSinistroSupabase(event)" class="space-y-3">
-        <input type="hidden" id="si-id" value=""/>
+        <input type="hidden" id="si-id"/>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Data Ocorrência</label>
+            <label class="block text-xs font-semibold text-slate-600">Data da Ocorrência</label>
             <input type="date" id="si-data" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Veículo</label>
-            <select id="si-veiculo" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"></select>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">Condutor</label>
-            <select id="si-condutor" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"></select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">Tipo Avaria</label>
+            <label class="block text-xs font-semibold text-slate-600">Tipo</label>
             <select id="si-tipo" class="w-full border border-slate-300 rounded p-2 text-xs outline-none">
               <option>Colisão</option>
               <option>Vidros</option>
               <option>Arranhão</option>
-              <option>Avaria em manobra</option>
+              <option>Avaria</option>
             </select>
           </div>
         </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Veículo</label>
+            <select id="si-veiculo" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Condutor</label>
+            <select id="si-condutor" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"></select>
+          </div>
+        </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600">Descrição Detalhada</label>
-          <input type="text" id="si-descricao" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Colisão lateral em manobra de estacionamento"/>
+          <label class="block text-xs font-semibold text-slate-600">Descrição do Evento</label>
+          <input type="text" id="si-descricao" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
         </div>
         <div class="grid grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Culpa</label>
+            <label class="block text-xs font-semibold text-slate-600">Culpabilidade</label>
             <select id="si-culpa" class="w-full border border-slate-300 rounded p-2 text-xs outline-none">
               <option>Própria</option>
               <option>Sem culpa (parado)</option>
@@ -1001,29 +720,26 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Valor Prejuízo (R$)</label>
-            <input type="number" step="0.01" id="si-prejuizo" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="6800.00"/>
+            <label class="block text-xs font-semibold text-slate-600">Prejuízo Total (R$)</label>
+            <input type="number" step="0.01" id="si-prejuizo" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600">Franquia Paga (R$)</label>
-            <input type="number" step="0.01" id="si-franquia" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="2500.00"/>
+            <input type="number" step="0.01" id="si-franquia" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Acionou Seguro?</label>
-            <select id="si-seguro" class="w-full border border-slate-300 rounded p-2 text-xs outline-none">
-              <option>Sim</option>
-              <option>Não</option>
+            <label class="block text-xs font-semibold text-slate-600">Status</label>
+            <select id="si-status" class="w-full border border-slate-300 rounded p-2 text-xs outline-none">
+              <option>Concluído</option>
+              <option>Em andamento</option>
+              <option>Em análise</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600">A ressarcir pelo condutor?</label>
-            <input type="number" step="0.01" id="si-ressarcir" class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="2500.00"/>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">Mês Cobrança</label>
-            <input type="text" id="si-mes-cobranca" class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="ago/2027"/>
+            <label class="block text-xs font-semibold text-slate-600">A Ressarcir Condutor (R$)</label>
+            <input type="number" step="0.01" id="si-ressarcir" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
@@ -1035,656 +751,657 @@
   </div>
 
   <script>
-  // CONFIGURAÇÃO SUPABASE
-  const SUPABASE_URL = 'https://vfwgaiakuqgnjtrosech.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmd2dhaWFrdXFnbmp0cm9zZWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2ODIxOTgsImV4cCI6MjEwNjI1ODE5OH0.mVNwINdCQ24HfdVlL9cKtKbnhnj5AhqM52TYh44xGvQ';
+    // CONFIGURAÇÃO SUPABASE
+    const SUPABASE_URL = 'https://vfwgaiakuqgnjtrosech.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmd2dhaWFrdXFnbmp0cm9zZWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2ODIxOTgsImV4cCI6MjEwNjI1ODE5OH0.mVNwINdCQ24HfdVlL9cKtKbnhnj5AhqM52TYh44xGvQ';
 
-  let veiculos = [];
-  let condutores = [];
-  let historico = [];
-  let abastecimentos = [];
-  let manutencoes = [];
-  let multas = [];
-  let sinistros = [];
+    let veiculos = [];
+    let condutores = [];
+    let historico = [];
+    let abastecimentos = [];
+    let manutencoes = [];
+    let multas = [];
+    let sinistros = [];
 
-  // Função Fetch para o Supabase
-  async function supabaseFetch(endpoint, options = {}) {
-    const method = options.method || 'GET';
-    const headers = {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      ...options.headers
-    };
+    // Função Fetch para o Supabase
+    async function supabaseFetch(endpoint, options = {}) {
+      const method = options.method || 'GET';
+      const headers = {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
 
-    try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, { ...options, method, headers });
-      if (!response.ok) {
-        console.error(`[Supabase Error ${response.status}]`);
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, { ...options, method, headers });
+        if (!response.ok) {
+          console.error(`[Supabase Error ${response.status}]`);
+          return null;
+        }
+        if (response.status === 204 || response.headers.get('content-length') === '0') return true;
+        return await response.json();
+      } catch (err) {
+        console.error(`[Supabase Fetch Error - ${endpoint}]`, err);
         return null;
       }
-      if (response.status === 204 || response.headers.get('content-length') === '0') return true;
-      return await response.json();
-    } catch (err) {
-      console.error(`[Supabase Fetch Error - ${endpoint}]`, err);
-      return null;
     }
-  }
 
-  // EXECUÇÃO DO LOGIN DIRETO
-  function executarLogin() {
-    const loginScreen = document.getElementById('login-screen');
-    const appScreen = document.getElementById('app-screen');
+    // EXECUÇÃO DO LOGIN DIRETO
+    function executarLogin() {
+      const loginScreen = document.getElementById('login-screen');
+      const appScreen = document.getElementById('app-screen');
 
-    if (loginScreen) loginScreen.classList.add('hidden');
-    if (appScreen) {
-      appScreen.classList.remove('hidden');
-      appScreen.classList.add('flex');
-    }
-    carregarDadosDoSupabase();
-  }
-
-  function handleLogout() {
-    const loginScreen = document.getElementById('login-screen');
-    const appScreen = document.getElementById('app-screen');
-    if (appScreen) appScreen.classList.add('hidden');
-    if (loginScreen) loginScreen.classList.remove('hidden');
-  }
-
-  // Ouvintes de evento para tecla Enter e clique no botão
-  document.addEventListener('DOMContentLoaded', () => {
-    const btnLogin = document.getElementById('btn-entrar-login');
-    if (btnLogin) btnLogin.addEventListener('click', executarLogin);
-
-    ['login-user', 'login-pass'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') executarLogin();
-        });
+      if (loginScreen) loginScreen.classList.add('hidden');
+      if (appScreen) {
+        appScreen.classList.remove('hidden');
+        appScreen.classList.add('flex');
       }
+      carregarDadosDoSupabase();
+    }
+
+    function handleLogout() {
+      const loginScreen = document.getElementById('login-screen');
+      const appScreen = document.getElementById('app-screen');
+      if (appScreen) appScreen.classList.add('hidden');
+      if (loginScreen) loginScreen.classList.remove('hidden');
+    }
+
+    // Ouvintes de evento para tecla Enter e clique no botão
+    document.addEventListener('DOMContentLoaded', () => {
+      const btnLogin = document.getElementById('btn-entrar-login');
+      if (btnLogin) btnLogin.addEventListener('click', executarLogin);
+
+      ['login-user', 'login-pass'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') executarLogin();
+          });
+        }
+      });
     });
-  });
 
-  async function carregarDadosDoSupabase() {
-    // 1. Veículos
-    const dadosVeiculos = await supabaseFetch('veiculos?select=*');
-    veiculos = Array.isArray(dadosVeiculos) ? dadosVeiculos : [];
+    async function carregarDadosDoSupabase() {
+      // 1. Veículos
+      const dadosVeiculos = await supabaseFetch('veiculos?select=*');
+      veiculos = Array.isArray(dadosVeiculos) ? dadosVeiculos : [];
 
-    // 2. Condutores
-    const dadosCondutores = await supabaseFetch('condutores?select=*');
-    condutores = Array.isArray(dadosCondutores) ? dadosCondutores : [];
+      // 2. Condutores
+      const dadosCondutores = await supabaseFetch('condutores?select=*');
+      condutores = Array.isArray(dadosCondutores) ? dadosCondutores : [];
 
-    // 3. Abastecimentos
-    const dadosAbastecimento = await supabaseFetch('abastecimentos?select=*');
-    abastecimentos = Array.isArray(dadosAbastecimento) ? dadosAbastecimento : [];
+      // 3. Abastecimentos
+      const dadosAbastecimento = await supabaseFetch('abastecimentos?select=*');
+      abastecimentos = Array.isArray(dadosAbastecimento) ? dadosAbastecimento : [];
 
-    // 4. Manutenções
-    const dadosManutencao = await supabaseFetch('manutencoes?select=*');
-    manutencoes = Array.isArray(dadosManutencao) ? dadosManutencao : [];
+      // 4. Manutenções
+      const dadosManutencao = await supabaseFetch('manutencoes?select=*');
+      manutencoes = Array.isArray(dadosManutencao) ? dadosManutencao : [];
 
-    // 5. Multas
-    const dadosMultas = await supabaseFetch('multas?select=*');
-    multas = Array.isArray(dadosMultas) ? dadosMultas : [];
+      // 5. Multas
+      const dadosMultas = await supabaseFetch('multas?select=*');
+      multas = Array.isArray(dadosMultas) ? dadosMultas : [];
 
-    // 6. Sinistros
-    const dadosSinistros = await supabaseFetch('sinistros?select=*');
-    sinistros = Array.isArray(dadosSinistros) ? dadosSinistros : [];
+      // 6. Sinistros
+      const dadosSinistros = await supabaseFetch('sinistros?select=*');
+      sinistros = Array.isArray(dadosSinistros) ? dadosSinistros : [];
 
-    // 7. Histórico
-    const dadosHistorico = await supabaseFetch('movimentacoes?select=*');
-    historico = Array.isArray(dadosHistorico) ? dadosHistorico : [];
+      // 7. Histórico
+      const dadosHistorico = await supabaseFetch('movimentacoes?select=*');
+      historico = Array.isArray(dadosHistorico) ? dadosHistorico : [];
 
-    renderAll();
-    populateDropdowns();
-  }
+      renderAll();
+      populateDropdowns();
+    }
 
-  function renderAll() {
-    renderKPIs();
-    renderResumoTable();
-    renderFrotaTable();
-    renderCondutoresTable();
-    renderAbastecimentoTable();
-    renderManutencaoTable();
-    renderMultasTable();
-    renderSinistrosTable();
-    renderHistoricoTable();
-    renderRelatorioCondutor();
-    renderApuracaoVeiculoTable();
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-  }
+    function renderAll() {
+      renderKPIs();
+      renderResumoTable();
+      renderFrotaTable();
+      renderCondutoresTable();
+      renderAbastecimentoTable();
+      renderManutencaoTable();
+      renderMultasTable();
+      renderSinistrosTable();
+      renderHistoricoTable();
+      renderRelatorioCondutor();
+      renderApuracaoVeiculoTable();
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
 
-  function renderKPIs() {
-    const el = document.getElementById('kpi-cards');
-    if (!el) return;
-    el.innerHTML = `
-      <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Multas Pendentes</p><h4 class="text-xl font-bold text-amber-600">${multas.filter(m => m.situacao !== 'Concluído').length}</h4></div>
-      <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">CNH Vencendo</p><h4 class="text-xl font-bold text-emerald-600">0</h4></div>
-      <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Veículos Pendência</p><h4 class="text-xl font-bold text-rose-600">${veiculos.filter(v => v.status !== 'Ok').length}</h4></div>
-      <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Sinistros 12m</p><h4 class="text-xl font-bold text-slate-800">${sinistros.length}</h4></div>
-      <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Total Veículos</p><h4 class="text-xl font-bold text-blue-600">${veiculos.length}</h4></div>
-      <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Condutores Ativos</p><h4 class="text-xl font-bold text-indigo-600">${condutores.length}</h4></div>
-    `;
-  }
-
-  function renderResumoTable() {
-    const el = document.getElementById('tb-resumo-corpo');
-    if (!el) return;
-    el.innerHTML = veiculos.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum veículo cadastrado.</td></tr>' : veiculos.map(v => `
-      <tr class="hover:bg-slate-50 transition">
-        <td class="p-2 font-semibold text-slate-800">${v.placa} — ${v.modelo}</td>
-        <td class="p-2 text-slate-500">${v.tipo}</td>
-        <td class="p-2 text-right font-mono">${(v.km_ano || 0).toLocaleString('pt-BR')} km</td>
-        <td class="p-2 text-right font-mono">${v.kml || '-'}</td>
-        <td class="p-2 text-right font-mono">R$ ${(v.gasto_mensal || 0).toFixed(2)}</td>
-        <td class="p-2 text-right font-mono">R$ ${(v.custo_km || 0).toFixed(2)}</td>
-        <td class="p-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${v.status === 'Ok' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${v.status || 'Ok'}</span></td>
-      </tr>
-    `).join('');
-  }
-
-  function renderFrotaTable() {
-    const el = document.getElementById('tb-frota-corpo');
-    if (!el) return;
-    el.innerHTML = veiculos.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum veículo cadastrado.</td></tr>' : veiculos.map(v => `
-      <tr class="hover:bg-slate-50 transition">
-        <td class="p-2 font-semibold text-slate-800">${v.placa} <br/><span class="text-[10px] text-slate-400">${v.modelo}</span></td>
-        <td class="p-2 text-right font-mono">R$ ${(v.fipe || 0).toLocaleString('pt-BR')}</td>
-        <td class="p-2 text-right font-mono">${(v.km_ano || 0).toLocaleString('pt-BR')} km</td>
-        <td class="p-2 text-right font-mono">${v.kml || '-'}</td>
-        <td class="p-2 text-right font-mono">R$ ${(v.fixo_mensal || 0).toFixed(2)}</td>
-        <td class="p-2 text-slate-600">${v.prox_rev || 'N/A'}</td>
-        <td class="p-2 text-center">
-          <button onclick="editVeiculoModal(${v.id})" class="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"><i data-lucide="edit" class="w-3.5 h-3.5"></i></button>
-          <button onclick="excluirVeiculoSupabase(${v.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function renderCondutoresTable() {
-    const el = document.getElementById('tb-condutores-corpo');
-    if (!el) return;
-    el.innerHTML = condutores.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum condutor cadastrado.</td></tr>' : condutores.map(c => `
-      <tr class="hover:bg-slate-50 transition">
-        <td class="p-2 font-semibold text-slate-800">${c.nome}</td>
-        <td class="p-2 font-mono">${c.cnh} <span class="bg-slate-200 px-1 py-0.5 rounded text-[10px]">${c.cat || 'B'}</span></td>
-        <td class="p-2 text-slate-600">${c.validade || '-'}</td>
-        <td class="p-2 text-slate-600">${c.funcao || '-'}</td>
-        <td class="p-2 text-center font-bold ${c.pontos > 0 ? 'text-amber-600' : 'text-slate-700'}">${c.pontos || 0}</td>
-        <td class="p-2 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] rounded-full font-medium">${c.status || 'Ativo'}</span></td>
-        <td class="p-2 text-center">
-          <button onclick="editCondutorModal(${c.id})" class="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"><i data-lucide="edit" class="w-3.5 h-3.5"></i></button>
-          <button onclick="excluirCondutorSupabase(${c.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function renderAbastecimentoTable() {
-    const el = document.getElementById('tb-abastecimentos-corpo');
-    if (!el) return;
-    el.innerHTML = abastecimentos.length === 0 ? '<tr><td colspan="10" class="p-4 text-center text-slate-400">Nenhum abastecimento registrado.</td></tr>' : abastecimentos.map(a => `
-      <tr class="hover:bg-slate-50 transition">
-        <td class="p-2 font-mono text-slate-600">${a.data}</td>
-        <td class="p-2 font-semibold text-slate-800">${a.veiculo}</td>
-        <td class="p-2 text-slate-600">${a.posto}</td>
-        <td class="p-2 text-slate-600">${a.combustivel}</td>
-        <td class="p-2 text-right font-mono">R$ ${(a.preco_un || 0).toFixed(2)}</td>
-        <td class="p-2 text-right font-mono">${(a.litros_kwh || 0).toFixed(2)}</td>
-        <td class="p-2 text-right font-mono font-bold text-emerald-600">R$ ${(a.valor_total || 0).toFixed(2)}</td>
-        <td class="p-2 text-right font-mono">${(a.odometro || 0).toLocaleString('pt-BR')} km</td>
-        <td class="p-2 text-slate-600">${a.condutor}</td>
-        <td class="p-2 text-center">
-          <button onclick="excluirAbastecimentoSupabase(${a.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function renderManutencaoTable() {
-    const el = document.getElementById('tb-manutencao-corpo');
-    if (!el) return;
-    el.innerHTML = manutencoes.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhuma manutenção registrada.</td></tr>' : manutencoes.map(m => `
-      <tr class="hover:bg-slate-50 transition">
-        <td class="p-2 font-mono text-slate-600">${m.data}</td>
-        <td class="p-2 font-semibold text-slate-800">${m.veiculo}</td>
-        <td class="p-2 text-right font-mono">${(m.odometro || 0).toLocaleString('pt-BR')} km</td>
-        <td class="p-2 text-slate-600">${m.tipo}</td>
-        <td class="p-2 text-slate-600">${m.descricao}</td>
-        <td class="p-2 text-slate-600">${m.oficina}</td>
-        <td class="p-2 text-right font-mono font-bold text-slate-800">R$ ${(m.valor || 0).toFixed(2)}</td>
-        <td class="p-2 font-mono text-slate-500">${m.nf || '-'}</td>
-        <td class="p-2 text-center">
-          <button onclick="excluirManutencaoSupabase(${m.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function renderMultasTable() {
-    const el = document.getElementById('tb-multas-corpo');
-    if (!el) return;
-    el.innerHTML = multas.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhuma multa registrada.</td></tr>' : multas.map(mu => `
-      <tr class="hover:bg-slate-50 transition">
-        <td class="p-2 font-mono text-slate-600">${mu.data}</td>
-        <td class="p-2 font-mono text-slate-800 font-semibold">${mu.ait}</td>
-        <td class="p-2 text-slate-800">${mu.veiculo}</td>
-        <td class="p-2 text-slate-600">${mu.condutor}</td>
-        <td class="p-2 text-slate-600">${mu.gravidade}</td>
-        <td class="p-2 text-center font-bold text-amber-600">${mu.pontos}</td>
-        <td class="p-2 text-right font-mono font-bold text-rose-600">R$ ${(mu.valor || 0).toFixed(2)}</td>
-        <td class="p-2 text-slate-600"><span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px]">${mu.situacao}</span></td>
-        <td class="p-2 text-center">
-          <button onclick="excluirMultaSupabase(${mu.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function renderSinistrosTable() {
-    const el = document.getElementById('tb-sinistros-corpo');
-    if (!el) return;
-    el.innerHTML = sinistros.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhum sinistro registrado.</td></tr>' : sinistros.map(s => `
-      <tr class="hover:bg-slate-50 transition">
-        <td class="p-2 font-mono text-slate-600">${s.data}</td>
-        <td class="p-2 font-semibold text-slate-800">${s.veiculo}</td>
-        <td class="p-2 text-slate-600">${s.condutor}</td>
-        <td class="p-2 text-slate-600">${s.tipo}</td>
-        <td class="p-2 text-slate-600">${s.culpa}</td>
-        <td class="p-2 text-right font-mono">R$ ${(s.valor_prejuizo || 0).toFixed(2)}</td>
-        <td class="p-2 text-right font-mono font-bold text-rose-600">R$ ${(s.franquia_paga || 0).toFixed(2)}</td>
-        <td class="p-2 text-slate-600"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[10px]">${s.status}</span></td>
-        <td class="p-2 text-center">
-          <button onclick="excluirSinistroSupabase(${s.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function renderHistoricoTable() {
-    const el = document.getElementById('tb-historico-corpo');
-    if (!el) return;
-    el.innerHTML = historico.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhuma movimentação registrada.</td></tr>' : historico.map(h => {
-      const kmInic = h.km_inicial || 0;
-      const kmFin = h.km_final || 0;
-      return `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-2 font-semibold text-slate-800">${h.veiculo}</td>
-          <td class="p-2 text-slate-600">${h.condutor}</td>
-          <td class="p-2 font-mono text-[10px] text-slate-500">${(h.data_saida||'').replace('T',' ')}</td>
-          <td class="p-2 font-mono text-[10px] text-slate-500">${(h.data_devolucao||'').replace('T',' ')}</td>
-          <td class="p-2 text-right font-mono">${kmInic}</td>
-          <td class="p-2 text-right font-mono">${kmFin || '-'}</td>
-          <td class="p-2 text-slate-600">${h.finalidade || 'Operacional / Serviço'}</td>
-        </tr>
+    function renderKPIs() {
+      const el = document.getElementById('kpi-cards');
+      if (!el) return;
+      el.innerHTML = `
+        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Multas Pendentes</p><h4 class="text-xl font-bold text-amber-600">${multas.filter(m => m.situacao !== 'Concluído').length}</h4></div>
+        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">CNH Vencendo</p><h4 class="text-xl font-bold text-emerald-600">0</h4></div>
+        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Veículos Pendência</p><h4 class="text-xl font-bold text-rose-600">${veiculos.filter(v => v.status !== 'Ok').length}</h4></div>
+        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Sinistros 12m</p><h4 class="text-xl font-bold text-slate-800">${sinistros.length}</h4></div>
+        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Total Veículos</p><h4 class="text-xl font-bold text-blue-600">${veiculos.length}</h4></div>
+        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center"><p class="text-[10px] uppercase text-slate-400 font-bold">Condutores Ativos</p><h4 class="text-xl font-bold text-indigo-600">${condutores.length}</h4></div>
       `;
-    }).join('');
-  }
+    }
 
-  function populateDropdowns() {
-    const selRel = document.getElementById('sel-rel-condutor');
-    const optCondutores = condutores.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-    const optVeiculos = veiculos.map(v => `<option value="${v.placa} — ${v.modelo}">${v.placa} — ${v.modelo}</option>`).join('');
+    function renderResumoTable() {
+      const el = document.getElementById('tb-resumo-corpo');
+      if (!el) return;
+      el.innerHTML = veiculos.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum veículo cadastrado.</td></tr>' : veiculos.map(v => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-2 font-semibold text-slate-800">${v.placa} — ${v.modelo}</td>
+          <td class="p-2 text-slate-500">${v.tipo}</td>
+          <td class="p-2 text-right font-mono">${(v.km_ano || 0).toLocaleString('pt-BR')} km</td>
+          <td class="p-2 text-right font-mono">${v.kml || '-'}</td>
+          <td class="p-2 text-right font-mono">R$ ${(v.gasto_mensal || 0).toFixed(2)}</td>
+          <td class="p-2 text-right font-mono">R$ ${(v.custo_km || 0).toFixed(2)}</td>
+          <td class="p-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${v.status === 'Ok' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${v.status || 'Ok'}</span></td>
+        </tr>
+      `).join('');
+    }
 
-    if (selRel) selRel.innerHTML = optCondutores || '<option value="">Sem condutores</option>';
-    
-    ['a-veiculo', 'm-veiculo', 'mu-veiculo', 'si-veiculo'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = optVeiculos || '<option value="">Sem veículos</option>';
-    });
+    function renderFrotaTable() {
+      const el = document.getElementById('tb-frota-corpo');
+      if (!el) return;
+      el.innerHTML = veiculos.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum veículo cadastrado.</td></tr>' : veiculos.map(v => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-2 font-semibold text-slate-800">${v.placa} <br/><span class="text-[10px] text-slate-400">${v.modelo}</span></td>
+          <td class="p-2 text-right font-mono">R$ ${(v.fipe || 0).toLocaleString('pt-BR')}</td>
+          <td class="p-2 text-right font-mono">${(v.km_ano || 0).toLocaleString('pt-BR')} km</td>
+          <td class="p-2 text-right font-mono">${v.kml || '-'}</td>
+          <td class="p-2 text-right font-mono">R$ ${(v.fixo_mensal || 0).toFixed(2)}</td>
+          <td class="p-2 text-slate-600">${v.prox_rev || 'N/A'}</td>
+          <td class="p-2 text-center">
+            <button onclick="editVeiculoModal(${v.id})" class="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"><i data-lucide="edit" class="w-3.5 h-3.5"></i></button>
+            <button onclick="excluirVeiculoSupabase(${v.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
 
-    ['a-condutor', 'mu-condutor', 'si-condutor'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = optCondutores || '<option value="">Sem condutores</option>';
-    });
-  }
+    function renderCondutoresTable() {
+      const el = document.getElementById('tb-condutores-corpo');
+      if (!el) return;
+      el.innerHTML = condutores.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhum condutor cadastrado.</td></tr>' : condutores.map(c => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-2 font-semibold text-slate-800">${c.nome}</td>
+          <td class="p-2 font-mono">${c.cnh} <span class="bg-slate-200 px-1 py-0.5 rounded text-[10px]">${c.cat || 'B'}</span></td>
+          <td class="p-2 text-slate-600">${c.validade || '-'}</td>
+          <td class="p-2 text-slate-600">${c.funcao || '-'}</td>
+          <td class="p-2 text-center font-bold ${c.pontos > 0 ? 'text-amber-600' : 'text-slate-700'}">${c.pontos || 0}</td>
+          <td class="p-2 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] rounded-full font-medium">${c.status || 'Ativo'}</span></td>
+          <td class="p-2 text-center">
+            <button onclick="editCondutorModal(${c.id})" class="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"><i data-lucide="edit" class="w-3.5 h-3.5"></i></button>
+            <button onclick="excluirCondutorSupabase(${c.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
 
-  function renderRelatorioCondutor() {
-    const selEl = document.getElementById('sel-rel-condutor');
-    const el = document.getElementById('rel-condutor-detalhes');
-    if (!el) return;
+    function renderAbastecimentoTable() {
+      const el = document.getElementById('tb-abastecimentos-corpo');
+      if (!el) return;
+      el.innerHTML = abastecimentos.length === 0 ? '<tr><td colspan="10" class="p-4 text-center text-slate-400">Nenhum abastecimento registrado.</td></tr>' : abastecimentos.map(a => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-2 font-mono text-slate-600">${a.data}</td>
+          <td class="p-2 font-semibold text-slate-800">${a.veiculo}</td>
+          <td class="p-2 text-slate-600">${a.posto}</td>
+          <td class="p-2 text-slate-600">${a.combustivel}</td>
+          <td class="p-2 text-right font-mono">R$ ${(a.preco_un || 0).toFixed(2)}</td>
+          <td class="p-2 text-right font-mono">${(a.litros_kwh || 0).toFixed(2)}</td>
+          <td class="p-2 text-right font-mono font-bold text-emerald-600">R$ ${(a.valor_total || 0).toFixed(2)}</td>
+          <td class="p-2 text-right font-mono">${(a.odometro || 0).toLocaleString('pt-BR')} km</td>
+          <td class="p-2 text-slate-600">${a.condutor}</td>
+          <td class="p-2 text-center">
+            <button onclick="excluirAbastecimentoSupabase(${a.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
 
-    const nome = selEl ? selEl.value : (condutores[0] ? condutores[0].nome : '');
-    const c = condutores.find(item => item.nome === nome) || {};
+    function renderManutencaoTable() {
+      const el = document.getElementById('tb-manutencao-corpo');
+      if (!el) return;
+      el.innerHTML = manutencoes.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhuma manutenção registrada.</td></tr>' : manutencoes.map(m => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-2 font-mono text-slate-600">${m.data}</td>
+          <td class="p-2 font-semibold text-slate-800">${m.veiculo}</td>
+          <td class="p-2 text-right font-mono">${(m.odometro || 0).toLocaleString('pt-BR')} km</td>
+          <td class="p-2 text-slate-600">${m.tipo}</td>
+          <td class="p-2 text-slate-600">${m.descricao}</td>
+          <td class="p-2 text-slate-600">${m.oficina}</td>
+          <td class="p-2 text-right font-mono font-bold text-slate-800">R$ ${(m.valor || 0).toFixed(2)}</td>
+          <td class="p-2 font-mono text-slate-500">${m.nf || '-'}</td>
+          <td class="p-2 text-center">
+            <button onclick="excluirManutencaoSupabase(${m.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
 
-    el.innerHTML = `
-      <div class="border-b pb-3 flex justify-between items-center">
-        <div>
-          <h3 class="text-base font-bold text-slate-900">${c.nome || 'Nenhum condutor selecionado'}</h3>
-          <p class="text-slate-500">CNH: ${c.cnh || '-'} | Categoria: ${c.cat || 'B'} | Validade: ${c.validade || '-'}</p>
+    function renderMultasTable() {
+      const el = document.getElementById('tb-multas-corpo');
+      if (!el) return;
+      el.innerHTML = multas.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhuma multa registrada.</td></tr>' : multas.map(mu => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-2 font-mono text-slate-600">${mu.data}</td>
+          <td class="p-2 font-mono text-slate-800 font-semibold">${mu.ait}</td>
+          <td class="p-2 text-slate-800">${mu.veiculo}</td>
+          <td class="p-2 text-slate-600">${mu.condutor}</td>
+          <td class="p-2 text-slate-600">${mu.gravidade}</td>
+          <td class="p-2 text-center font-bold text-amber-600">${mu.pontos}</td>
+          <td class="p-2 text-right font-mono font-bold text-rose-600">R$ ${(mu.valor || 0).toFixed(2)}</td>
+          <td class="p-2 text-slate-600"><span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px]">${mu.situacao}</span></td>
+          <td class="p-2 text-center">
+            <button onclick="excluirMultaSupabase(${mu.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderSinistrosTable() {
+      const el = document.getElementById('tb-sinistros-corpo');
+      if (!el) return;
+      el.innerHTML = sinistros.length === 0 ? '<tr><td colspan="9" class="p-4 text-center text-slate-400">Nenhum sinistro registrado.</td></tr>' : sinistros.map(s => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-2 font-mono text-slate-600">${s.data}</td>
+          <td class="p-2 font-semibold text-slate-800">${s.veiculo}</td>
+          <td class="p-2 text-slate-600">${s.condutor}</td>
+          <td class="p-2 text-slate-600">${s.tipo}</td>
+          <td class="p-2 text-slate-600">${s.culpa}</td>
+          <td class="p-2 text-right font-mono">R$ ${(s.valor_prejuizo || 0).toFixed(2)}</td>
+          <td class="p-2 text-right font-mono font-bold text-rose-600">R$ ${(s.franquia_paga || 0).toFixed(2)}</td>
+          <td class="p-2 text-slate-600"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[10px]">${s.status}</span></td>
+          <td class="p-2 text-center">
+            <button onclick="excluirSinistroSupabase(${s.id})" class="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderHistoricoTable() {
+      const el = document.getElementById('tb-historico-corpo');
+      if (!el) return;
+      el.innerHTML = historico.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-slate-400">Nenhuma movimentação registrada.</td></tr>' : historico.map(h => {
+        const kmInic = h.km_inicial || 0;
+        const kmFin = h.km_final || 0;
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-2 font-semibold text-slate-800">${h.veiculo}</td>
+            <td class="p-2 text-slate-600">${h.condutor}</td>
+            <td class="p-2 font-mono text-[10px] text-slate-500">${(h.data_saida||'').replace('T',' ')}</td>
+            <td class="p-2 font-mono text-[10px] text-slate-500">${(h.data_devolucao||'').replace('T',' ')}</td>
+            <td class="p-2 text-right font-mono">${kmInic}</td>
+            <td class="p-2 text-right font-mono">${kmFin || '-'}</td>
+            <td class="p-2 text-slate-600">${h.finalidade || 'Operacional / Serviço'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function populateDropdowns() {
+      const selRel = document.getElementById('sel-rel-condutor');
+      const optCondutores = condutores.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+      const optVeiculos = veiculos.map(v => `<option value="${v.placa} — ${v.modelo}">${v.placa} — ${v.modelo}</option>`).join('');
+
+      if (selRel) selRel.innerHTML = optCondutores || '<option value="">Sem condutores</option>';
+      
+      ['a-veiculo', 'm-veiculo', 'mu-veiculo', 'si-veiculo'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = optVeiculos || '<option value="">Sem veículos</option>';
+      });
+
+      ['a-condutor', 'mu-condutor', 'si-condutor'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = optCondutores || '<option value="">Sem condutores</option>';
+      });
+    }
+
+    function renderRelatorioCondutor() {
+      const selEl = document.getElementById('sel-rel-condutor');
+      const el = document.getElementById('rel-condutor-detalhes');
+      if (!el) return;
+
+      const nome = selEl ? selEl.value : (condutores[0] ? condutores[0].nome : '');
+      const c = condutores.find(item => item.nome === nome) || {};
+
+      el.innerHTML = `
+        <div class="border-b pb-3 flex justify-between items-center">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">${c.nome || 'Nenhum condutor selecionado'}</h3>
+            <p class="text-slate-500">CNH: ${c.cnh || '-'} | Categoria: ${c.cat || 'B'} | Validade: ${c.validade || '-'}</p>
+          </div>
+          <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold">Situação: ${c.status || 'Inativo'}</span>
         </div>
-        <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold">Situação: ${c.status || 'Inativo'}</span>
-      </div>
-      <div class="grid grid-cols-3 gap-4 border-b pb-4">
-        <div class="p-3 bg-slate-50 rounded">
-          <p class="text-slate-500 text-[10px] uppercase font-bold">Pontos CTB (12m)</p>
-          <p class="text-lg font-bold text-amber-600">${c.pontos || 0} / 40 pts</p>
+        <div class="grid grid-cols-3 gap-4 border-b pb-4">
+          <div class="p-3 bg-slate-50 rounded">
+            <p class="text-slate-500 text-[10px] uppercase font-bold">Pontos CTB (12m)</p>
+            <p class="text-lg font-bold text-amber-600">${c.pontos || 0} / 40 pts</p>
+          </div>
+          <div class="p-3 bg-slate-50 rounded">
+            <p class="text-slate-500 text-[10px] uppercase font-bold">Multas Registradas</p>
+            <p class="text-lg font-bold text-slate-800">${multas.filter(m => m.condutor === c.nome).length}</p>
+          </div>
+          <div class="p-3 bg-slate-50 rounded">
+            <p class="text-slate-500 text-[10px] uppercase font-bold">Sinistros com Culpa</p>
+            <p class="text-lg font-bold text-rose-600">${sinistros.filter(s => s.condutor === c.nome && s.culpa === 'Própria').length}</p>
+          </div>
         </div>
-        <div class="p-3 bg-slate-50 rounded">
-          <p class="text-slate-500 text-[10px] uppercase font-bold">Multas Registradas</p>
-          <p class="text-lg font-bold text-slate-800">${multas.filter(m => m.condutor === c.nome).length}</p>
-        </div>
-        <div class="p-3 bg-slate-50 rounded">
-          <p class="text-slate-500 text-[10px] uppercase font-bold">Sinistros com Culpa</p>
-          <p class="text-lg font-bold text-rose-600">${sinistros.filter(s => s.condutor === c.nome && s.culpa === 'Própria').length}</p>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderApuracaoVeiculoTable() {
-    const el = document.getElementById('tb-apuracao-veiculo-corpo');
-    if (!el) return;
-    el.innerHTML = veiculos.length === 0 ? '<tr><td colspan="8" class="p-4 text-center text-slate-400">Nenhum veículo apurado.</td></tr>' : veiculos.map(v => `
-      <tr class="hover:bg-slate-50 transition">
-        <td class="p-2 font-semibold text-slate-800">jan/2027 — ${v.placa}</td>
-        <td class="p-2 text-right font-mono">0 km</td>
-        <td class="p-2 text-right font-mono">0 km</td>
-        <td class="p-2 text-right font-mono">0 km</td>
-        <td class="p-2 text-right font-mono">0 L</td>
-        <td class="p-2 text-right font-mono font-bold">R$ 0,00</td>
-        <td class="p-2 text-right font-mono text-blue-600 font-bold">R$ 0,00</td>
-        <td class="p-2 text-right font-mono text-emerald-700 font-bold">R$ 0,00</td>
-      </tr>
-    `).join('');
-  }
-
-  function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-      btn.classList.remove('bg-blue-600', 'text-white');
-      btn.classList.add('text-slate-400');
-    });
-
-    const activeTab = document.getElementById(`tab-${tabId}`);
-    if (activeTab) activeTab.classList.remove('hidden');
-
-    const activeBtn = document.getElementById(`btn-${tabId}`);
-    if (activeBtn) {
-      activeBtn.classList.add('bg-blue-600', 'text-white');
-      activeBtn.classList.remove('text-slate-400');
+      `;
     }
-  }
 
-  // MODAIS VEÍCULO
-  function openVeiculoModal() {
-    const form = document.getElementById('form-veiculo');
-    if (form) form.reset();
-    document.getElementById('v-id').value = '';
-    document.getElementById('modal-veiculo-titulo').innerText = 'Cadastrar Veículo';
-    document.getElementById('modal-veiculo').classList.remove('hidden');
-  }
-  function closeVeiculoModal() { document.getElementById('modal-veiculo').classList.add('hidden'); }
-  function editVeiculoModal(id) {
-    const v = veiculos.find(item => item.id === id);
-    if (!v) return;
-    document.getElementById('v-id').value = v.id;
-    document.getElementById('v-placa').value = v.placa;
-    document.getElementById('v-modelo').value = v.modelo;
-    document.getElementById('v-tipo').value = v.tipo || 'Automóvel';
-    document.getElementById('v-fipe').value = v.fipe || 0;
-    document.getElementById('v-km-ano').value = v.km_ano || 0;
-    document.getElementById('v-kml').value = v.kml || 0;
-    document.getElementById('modal-veiculo-titulo').innerText = 'Editar Veículo';
-    document.getElementById('modal-veiculo').classList.remove('hidden');
-  }
-
-  async function salvarVeiculoSupabase(e) {
-    e.preventDefault();
-    const id = document.getElementById('v-id').value;
-    const payload = {
-      placa: document.getElementById('v-placa').value.toUpperCase(),
-      modelo: document.getElementById('v-modelo').value,
-      tipo: document.getElementById('v-tipo').value,
-      fipe: parseFloat(document.getElementById('v-fipe').value) || 0,
-      km_ano: parseInt(document.getElementById('v-km-ano').value) || 0,
-      kml: parseFloat(document.getElementById('v-kml').value) || 0,
-      status: "Ok"
-    };
-
-    if (id) {
-      await supabaseFetch(`veiculos?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-    } else {
-      await supabaseFetch('veiculos', { method: 'POST', body: JSON.stringify(payload) });
+    function renderApuracaoVeiculoTable() {
+      const el = document.getElementById('tb-apuracao-veiculo-corpo');
+      if (!el) return;
+      el.innerHTML = veiculos.length === 0 ? '<tr><td colspan="8" class="p-4 text-center text-slate-400">Nenhum veículo apurado.</td></tr>' : veiculos.map(v => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-2 font-semibold text-slate-800">jan/2027 — ${v.placa}</td>
+          <td class="p-2 text-right font-mono">0 km</td>
+          <td class="p-2 text-right font-mono">0 km</td>
+          <td class="p-2 text-right font-mono">0 km</td>
+          <td class="p-2 text-right font-mono">0 L</td>
+          <td class="p-2 text-right font-mono font-bold">R$ 0,00</td>
+          <td class="p-2 text-right font-mono text-blue-600 font-bold">R$ 0,00</td>
+          <td class="p-2 text-right font-mono text-emerald-700 font-bold">R$ 0,00</td>
+        </tr>
+      `).join('');
     }
-    closeVeiculoModal();
-    carregarDadosDoSupabase();
-  }
 
-  async function excluirVeiculoSupabase(id) {
-    if (confirm('Deseja excluir este veículo do banco Supabase?')) {
-      await supabaseFetch(`veiculos?id=eq.${id}`, { method: 'DELETE' });
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('text-slate-400');
+      });
+
+      const activeTab = document.getElementById(`tab-${tabId}`);
+      if (activeTab) activeTab.classList.remove('hidden');
+
+      const activeBtn = document.getElementById(`btn-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-blue-600', 'text-white');
+        activeBtn.classList.remove('text-slate-400');
+      }
+    }
+
+    // MODAIS VEÍCULO
+    function openVeiculoModal() {
+      const form = document.getElementById('form-veiculo');
+      if (form) form.reset();
+      document.getElementById('v-id').value = '';
+      document.getElementById('modal-veiculo-titulo').innerText = 'Cadastrar Veículo';
+      document.getElementById('modal-veiculo').classList.remove('hidden');
+    }
+    function closeVeiculoModal() { document.getElementById('modal-veiculo').classList.add('hidden'); }
+    function editVeiculoModal(id) {
+      const v = veiculos.find(item => item.id === id);
+      if (!v) return;
+      document.getElementById('v-id').value = v.id;
+      document.getElementById('v-placa').value = v.placa;
+      document.getElementById('v-modelo').value = v.modelo;
+      document.getElementById('v-tipo').value = v.tipo || 'Automóvel';
+      document.getElementById('v-fipe').value = v.fipe || 0;
+      document.getElementById('v-km-ano').value = v.km_ano || 0;
+      document.getElementById('v-kml').value = v.kml || 0;
+      document.getElementById('modal-veiculo-titulo').innerText = 'Editar Veículo';
+      document.getElementById('modal-veiculo').classList.remove('hidden');
+    }
+
+    async function salvarVeiculoSupabase(e) {
+      e.preventDefault();
+      const id = document.getElementById('v-id').value;
+      const payload = {
+        placa: document.getElementById('v-placa').value.toUpperCase(),
+        modelo: document.getElementById('v-modelo').value,
+        tipo: document.getElementById('v-tipo').value,
+        fipe: parseFloat(document.getElementById('v-fipe').value) || 0,
+        km_ano: parseInt(document.getElementById('v-km-ano').value) || 0,
+        kml: parseFloat(document.getElementById('v-kml').value) || 0,
+        status: "Ok"
+      };
+
+      if (id) {
+        await supabaseFetch(`veiculos?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+      } else {
+        await supabaseFetch('veiculos', { method: 'POST', body: JSON.stringify(payload) });
+      }
+      closeVeiculoModal();
       carregarDadosDoSupabase();
     }
-  }
 
-  // MODAIS CONDUTOR
-  function openCondutorModal() {
-    const form = document.getElementById('form-condutor');
-    if (form) form.reset();
-    document.getElementById('c-id').value = '';
-    document.getElementById('modal-condutor-titulo').innerText = 'Cadastrar Condutor';
-    document.getElementById('modal-condutor').classList.remove('hidden');
-  }
-  function closeCondutorModal() { document.getElementById('modal-condutor').classList.add('hidden'); }
-  function editCondutorModal(id) {
-    const c = condutores.find(item => item.id === id);
-    if (!c) return;
-    document.getElementById('c-id').value = c.id;
-    document.getElementById('c-nome').value = c.nome;
-    document.getElementById('c-cnh').value = c.cnh;
-    document.getElementById('c-cat').value = c.cat || 'B';
-    document.getElementById('c-validade').value = c.validade || '';
-    document.getElementById('c-funcao').value = c.funcao || '';
-    document.getElementById('modal-condutor-titulo').innerText = 'Editar Condutor';
-    document.getElementById('modal-condutor').classList.remove('hidden');
-  }
-
-  async function salvarCondutorSupabase(e) {
-    e.preventDefault();
-    const id = document.getElementById('c-id').value;
-    const payload = {
-      nome: document.getElementById('c-nome').value,
-      cnh: document.getElementById('c-cnh').value,
-      cat: document.getElementById('c-cat').value,
-      validade: document.getElementById('c-validade').value,
-      funcao: document.getElementById('c-funcao').value,
-      status: "Ativo"
-    };
-
-    if (id) {
-      await supabaseFetch(`condutores?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-    } else {
-      await supabaseFetch('condutores', { method: 'POST', body: JSON.stringify(payload) });
+    async function excluirVeiculoSupabase(id) {
+      if (confirm('Deseja excluir este veículo do banco Supabase?')) {
+        await supabaseFetch(`veiculos?id=eq.${id}`, { method: 'DELETE' });
+        carregarDadosDoSupabase();
+      }
     }
-    closeCondutorModal();
-    carregarDadosDoSupabase();
-  }
 
-  async function excluirCondutorSupabase(id) {
-    if (confirm('Deseja excluir este condutor do banco Supabase?')) {
-      await supabaseFetch(`condutores?id=eq.${id}`, { method: 'DELETE' });
+    // MODAIS CONDUTOR
+    function openCondutorModal() {
+      const form = document.getElementById('form-condutor');
+      if (form) form.reset();
+      document.getElementById('c-id').value = '';
+      document.getElementById('modal-condutor-titulo').innerText = 'Cadastrar Condutor';
+      document.getElementById('modal-condutor').classList.remove('hidden');
+    }
+    function closeCondutorModal() { document.getElementById('modal-condutor').classList.add('hidden'); }
+    function editCondutorModal(id) {
+      const c = condutores.find(item => item.id === id);
+      if (!c) return;
+      document.getElementById('c-id').value = c.id;
+      document.getElementById('c-nome').value = c.nome;
+      document.getElementById('c-cnh').value = c.cnh;
+      document.getElementById('c-cat').value = c.cat || 'B';
+      document.getElementById('c-validade').value = c.validade || '';
+      document.getElementById('c-funcao').value = c.funcao || '';
+      document.getElementById('modal-condutor-titulo').innerText = 'Editar Condutor';
+      document.getElementById('modal-condutor').classList.remove('hidden');
+    }
+
+    async function salvarCondutorSupabase(e) {
+      e.preventDefault();
+      const id = document.getElementById('c-id').value;
+      const payload = {
+        nome: document.getElementById('c-nome').value,
+        cnh: document.getElementById('c-cnh').value,
+        cat: document.getElementById('c-cat').value,
+        validade: document.getElementById('c-validade').value,
+        funcao: document.getElementById('c-funcao').value,
+        status: "Ativo"
+      };
+
+      if (id) {
+        await supabaseFetch(`condutores?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+      } else {
+        await supabaseFetch('condutores', { method: 'POST', body: JSON.stringify(payload) });
+      }
+      closeCondutorModal();
       carregarDadosDoSupabase();
     }
-  }
 
-  // MODAIS ABASTECIMENTO
-  function openAbastecimentoModal() {
-    const form = document.getElementById('form-abastecimento');
-    if (form) form.reset();
-    document.getElementById('a-id').value = '';
-    document.getElementById('modal-abastecimento').classList.remove('hidden');
-  }
-  function closeAbastecimentoModal() { document.getElementById('modal-abastecimento').classList.add('hidden'); }
-  function calcularTotalAbastecimento() {
-    const p = parseFloat(document.getElementById('a-preco').value) || 0;
-    const l = parseFloat(document.getElementById('a-litros').value) || 0;
-    document.getElementById('a-total').value = (p * l).toFixed(2);
-  }
-
-  async function salvarAbastecimentoSupabase(e) {
-    e.preventDefault();
-    const id = document.getElementById('a-id').value;
-    const payload = {
-      data: document.getElementById('a-data').value,
-      veiculo: document.getElementById('a-veiculo').value,
-      posto: document.getElementById('a-posto').value,
-      combustivel: document.getElementById('a-combustivel').value,
-      preco_un: parseFloat(document.getElementById('a-preco').value) || 0,
-      litros_kwh: parseFloat(document.getElementById('a-litros').value) || 0,
-      valor_total: parseFloat(document.getElementById('a-total').value) || 0,
-      odometro: parseInt(document.getElementById('a-odometro').value) || 0,
-      condutor: document.getElementById('a-condutor').value
-    };
-
-    if (id) {
-      await supabaseFetch(`abastecimentos?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-    } else {
-      await supabaseFetch('abastecimentos', { method: 'POST', body: JSON.stringify(payload) });
+    async function excluirCondutorSupabase(id) {
+      if (confirm('Deseja excluir este condutor do banco Supabase?')) {
+        await supabaseFetch(`condutores?id=eq.${id}`, { method: 'DELETE' });
+        carregarDadosDoSupabase();
+      }
     }
-    closeAbastecimentoModal();
-    carregarDadosDoSupabase();
-  }
 
-  async function excluirAbastecimentoSupabase(id) {
-    if (confirm('Deseja excluir este abastecimento do banco Supabase?')) {
-      await supabaseFetch(`abastecimentos?id=eq.${id}`, { method: 'DELETE' });
+    // MODAIS ABASTECIMENTO
+    function openAbastecimentoModal() {
+      const form = document.getElementById('form-abastecimento');
+      if (form) form.reset();
+      document.getElementById('a-id').value = '';
+      document.getElementById('modal-abastecimento').classList.remove('hidden');
+    }
+    function closeAbastecimentoModal() { document.getElementById('modal-abastecimento').classList.add('hidden'); }
+    function calcularTotalAbastecimento() {
+      const p = parseFloat(document.getElementById('a-preco').value) || 0;
+      const l = parseFloat(document.getElementById('a-litros').value) || 0;
+      document.getElementById('a-total').value = (p * l).toFixed(2);
+    }
+
+    async function salvarAbastecimentoSupabase(e) {
+      e.preventDefault();
+      const id = document.getElementById('a-id').value;
+      const payload = {
+        data: document.getElementById('a-data').value,
+        veiculo: document.getElementById('a-veiculo').value,
+        posto: document.getElementById('a-posto').value,
+        combustivel: document.getElementById('a-combustivel').value,
+        preco_un: parseFloat(document.getElementById('a-preco').value) || 0,
+        litros_kwh: parseFloat(document.getElementById('a-litros').value) || 0,
+        valor_total: parseFloat(document.getElementById('a-total').value) || 0,
+        odometro: parseInt(document.getElementById('a-odometro').value) || 0,
+        condutor: document.getElementById('a-condutor').value
+      };
+
+      if (id) {
+        await supabaseFetch(`abastecimentos?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+      } else {
+        await supabaseFetch('abastecimentos', { method: 'POST', body: JSON.stringify(payload) });
+      }
+      closeAbastecimentoModal();
       carregarDadosDoSupabase();
     }
-  }
 
-  // MODAIS MANUTENÇÃO
-  function openManutencaoModal() {
-    const form = document.getElementById('form-manutencao');
-    if (form) form.reset();
-    document.getElementById('m-id').value = '';
-    document.getElementById('modal-manutencao').classList.remove('hidden');
-  }
-  function closeManutencaoModal() { document.getElementById('modal-manutencao').classList.add('hidden'); }
-
-  async function salvarManutencaoSupabase(e) {
-    e.preventDefault();
-    const id = document.getElementById('m-id').value;
-    const payload = {
-      data: document.getElementById('m-data').value,
-      veiculo: document.getElementById('m-veiculo').value,
-      odometro: parseInt(document.getElementById('m-odometro').value) || 0,
-      tipo: document.getElementById('m-tipo').value,
-      descricao: document.getElementById('m-descricao').value,
-      oficina: document.getElementById('m-oficina').value,
-      valor: parseFloat(document.getElementById('m-valor').value) || 0,
-      nf: document.getElementById('m-nf').value,
-      prox_revisao: parseInt(document.getElementById('m-prox-rev').value) || null
-    };
-
-    if (id) {
-      await supabaseFetch(`manutencoes?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-    } else {
-      await supabaseFetch('manutencoes', { method: 'POST', body: JSON.stringify(payload) });
+    async function excluirAbastecimentoSupabase(id) {
+      if (confirm('Deseja excluir este abastecimento do banco Supabase?')) {
+        await supabaseFetch(`abastecimentos?id=eq.${id}`, { method: 'DELETE' });
+        carregarDadosDoSupabase();
+      }
     }
-    closeManutencaoModal();
-    carregarDadosDoSupabase();
-  }
 
-  async function excluirManutencaoSupabase(id) {
-    if (confirm('Deseja excluir esta manutenção do banco Supabase?')) {
-      await supabaseFetch(`manutencoes?id=eq.${id}`, { method: 'DELETE' });
+    // MODAIS MANUTENÇÃO
+    function openManutencaoModal() {
+      const form = document.getElementById('form-manutencao');
+      if (form) form.reset();
+      document.getElementById('m-id').value = '';
+      document.getElementById('modal-manutencao').classList.remove('hidden');
+    }
+    function closeManutencaoModal() { document.getElementById('modal-manutencao').classList.add('hidden'); }
+
+    async function salvarManutencaoSupabase(e) {
+      e.preventDefault();
+      const id = document.getElementById('m-id').value;
+      const payload = {
+        data: document.getElementById('m-data').value,
+        veiculo: document.getElementById('m-veiculo').value,
+        odometro: parseInt(document.getElementById('m-odometro').value) || 0,
+        tipo: document.getElementById('m-tipo').value,
+        descricao: document.getElementById('m-descricao').value,
+        oficina: document.getElementById('m-oficina').value,
+        valor: parseFloat(document.getElementById('m-valor').value) || 0,
+        nf: document.getElementById('m-nf').value,
+        prox_revisao: parseInt(document.getElementById('m-prox-rev').value) || null
+      };
+
+      if (id) {
+        await supabaseFetch(`manutencoes?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+      } else {
+        await supabaseFetch('manutencoes', { method: 'POST', body: JSON.stringify(payload) });
+      }
+      closeManutencaoModal();
       carregarDadosDoSupabase();
     }
-  }
 
-  // MODAIS MULTAS
-  function openMultaModal() {
-    const form = document.getElementById('form-multa');
-    if (form) form.reset();
-    document.getElementById('mu-id').value = '';
-    document.getElementById('modal-multa').classList.remove('hidden');
-  }
-  function closeMultaModal() { document.getElementById('modal-multa').classList.add('hidden'); }
-  function atualizarPontosMulta() {
-    const g = document.getElementById('mu-gravidade').value;
-    const pts = { 'Leve': 3, 'Média': 4, 'Grave': 5, 'Gravíssima': 7 };
-    document.getElementById('mu-pontos').value = pts[g] || 4;
-  }
-
-  async function salvarMultaSupabase(e) {
-    e.preventDefault();
-    const id = document.getElementById('mu-id').value;
-    const payload = {
-      data: document.getElementById('mu-data').value,
-      ait: document.getElementById('mu-ait').value,
-      veiculo: document.getElementById('mu-veiculo').value,
-      condutor: document.getElementById('mu-condutor').value,
-      descricao: document.getElementById('mu-descricao').value,
-      gravidade: document.getElementById('mu-gravidade').value,
-      pontos: parseInt(document.getElementById('mu-pontos').value) || 0,
-      valor: parseFloat(document.getElementById('mu-valor').value) || 0,
-      situacao: document.getElementById('mu-situacao').value,
-      pago_por: document.getElementById('mu-pago-por').value
-    };
-
-    if (id) {
-      await supabaseFetch(`multas?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-    } else {
-      await supabaseFetch('multas', { method: 'POST', body: JSON.stringify(payload) });
+    async function excluirManutencaoSupabase(id) {
+      if (confirm('Deseja excluir esta manutenção do banco Supabase?')) {
+        await supabaseFetch(`manutencoes?id=eq.${id}`, { method: 'DELETE' });
+        carregarDadosDoSupabase();
+      }
     }
-    closeMultaModal();
-    carregarDadosDoSupabase();
-  }
 
-  async function excluirMultaSupabase(id) {
-    if (confirm('Deseja excluir esta multa do banco Supabase?')) {
-      await supabaseFetch(`multas?id=eq.${id}`, { method: 'DELETE' });
+    // MODAIS MULTAS
+    function openMultaModal() {
+      const form = document.getElementById('form-multa');
+      if (form) form.reset();
+      document.getElementById('mu-id').value = '';
+      document.getElementById('modal-multa').classList.remove('hidden');
+    }
+    function closeMultaModal() { document.getElementById('modal-multa').classList.add('hidden'); }
+    function atualizarPontosMulta() {
+      const g = document.getElementById('mu-gravidade').value;
+      const pts = { 'Leve': 3, 'Média': 4, 'Grave': 5, 'Gravíssima': 7 };
+      document.getElementById('mu-pontos').value = pts[g] || 4;
+    }
+
+    async function salvarMultaSupabase(e) {
+      e.preventDefault();
+      const id = document.getElementById('mu-id').value;
+      const payload = {
+        data: document.getElementById('mu-data').value,
+        ait: document.getElementById('mu-ait').value,
+        veiculo: document.getElementById('mu-veiculo').value,
+        condutor: document.getElementById('mu-condutor').value,
+        descricao: document.getElementById('mu-descricao').value,
+        gravidade: document.getElementById('mu-gravidade').value,
+        pontos: parseInt(document.getElementById('mu-pontos').value) || 0,
+        valor: parseFloat(document.getElementById('mu-valor').value) || 0,
+        situacao: document.getElementById('mu-situacao').value,
+        pago_por: document.getElementById('mu-pago-por').value
+      };
+
+      if (id) {
+        await supabaseFetch(`multas?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+      } else {
+        await supabaseFetch('multas', { method: 'POST', body: JSON.stringify(payload) });
+      }
+      closeMultaModal();
       carregarDadosDoSupabase();
     }
-  }
 
-  // MODAIS SINISTROS
-  function openSinistroModal() {
-    const form = document.getElementById('form-sinistro');
-    if (form) form.reset();
-    document.getElementById('si-id').value = '';
-    document.getElementById('modal-sinistro').classList.remove('hidden');
-  }
-  function closeSinistroModal() { document.getElementById('modal-sinistro').classList.add('hidden'); }
-
-  async function salvarSinistroSupabase(e) {
-    e.preventDefault();
-    const id = document.getElementById('si-id').value;
-    const payload = {
-      data: document.getElementById('si-data').value,
-      tipo: document.getElementById('si-tipo').value,
-      veiculo: document.getElementById('si-veiculo').value,
-      condutor: document.getElementById('si-condutor').value,
-      descricao: document.getElementById('si-descricao').value,
-      culpa: document.getElementById('si-culpa').value,
-      valor_prejuizo: parseFloat(document.getElementById('si-prejuizo').value) || 0,
-      franquia_paga: parseFloat(document.getElementById('si-franquia').value) || 0,
-      status: document.getElementById('si-status').value,
-      ressarcir: parseFloat(document.getElementById('si-ressarcir').value) || 0
-    };
-
-    if (id) {
-      await supabaseFetch(`sinistros?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-    } else {
-      await supabaseFetch('sinistros', { method: 'POST', body: JSON.stringify(payload) });
+    async function excluirMultaSupabase(id) {
+      if (confirm('Deseja excluir esta multa do banco Supabase?')) {
+        await supabaseFetch(`multas?id=eq.${id}`, { method: 'DELETE' });
+        carregarDadosDoSupabase();
+      }
     }
-    closeSinistroModal();
-    carregarDadosDoSupabase();
-  }
 
-  async function excluirSinistroSupabase(id) {
-    if (confirm('Deseja excluir este sinistro do banco Supabase?')) {
-      await supabaseFetch(`sinistros?id=eq.${id}`, { method: 'DELETE' });
+    // MODAIS SINISTROS
+    function openSinistroModal() {
+      const form = document.getElementById('form-sinistro');
+      if (form) form.reset();
+      document.getElementById('si-id').value = '';
+      document.getElementById('modal-sinistro').classList.remove('hidden');
+    }
+    function closeSinistroModal() { document.getElementById('modal-sinistro').classList.add('hidden'); }
+
+    async function salvarSinistroSupabase(e) {
+      e.preventDefault();
+      const id = document.getElementById('si-id').value;
+      const payload = {
+        data: document.getElementById('si-data').value,
+        tipo: document.getElementById('si-tipo').value,
+        veiculo: document.getElementById('si-veiculo').value,
+        condutor: document.getElementById('si-condutor').value,
+        descricao: document.getElementById('si-descricao').value,
+        culpa: document.getElementById('si-culpa').value,
+        valor_prejuizo: parseFloat(document.getElementById('si-prejuizo').value) || 0,
+        franquia_paga: parseFloat(document.getElementById('si-franquia').value) || 0,
+        status: document.getElementById('si-status').value,
+        ressarcir: parseFloat(document.getElementById('si-ressarcir').value) || 0
+      };
+
+      if (id) {
+        await supabaseFetch(`sinistros?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+      } else {
+        await supabaseFetch('sinistros', { method: 'POST', body: JSON.stringify(payload) });
+      }
+      closeSinistroModal();
       carregarDadosDoSupabase();
     }
-  }
+
+    async function excluirSinistroSupabase(id) {
+      if (confirm('Deseja excluir este sinistro do banco Supabase?')) {
+        await supabaseFetch(`sinistros?id=eq.${id}`, { method: 'DELETE' });
+        carregarDadosDoSupabase();
+      }
+    }
+
     // EXPORTAR CSV
     function exportCSV() {
       let csvContent = "data:text/csv;charset=utf-8,Veiculo,Condutor,Saida,Devolucao,KM Inicial,KM Final,Finalidade\n";
       historico.forEach(h => {
-        csvContent += `"${h.veiculo}","${h.condutor}","${h.data_saida||h.dataSaida}","${h.data_devolucao||h.dataDevolucao}","${h.km_inicial||h.kmInicial}","${h.km_final||h.kmFinal}","${h.finalidade||''}"\n`;
+        csvContent += `"${h.veiculo}","${h.condutor}","${h.data_saida||''}","${h.data_devolucao||''}","${h.km_inicial||''}","${h.km_final||''}","${h.finalidade||''}"\n`;
       });
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
