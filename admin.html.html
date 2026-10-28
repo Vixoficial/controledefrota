@@ -435,43 +435,80 @@
   </div>
 
   <!-- MODAL: CADASTRAR CONDUTOR -->
-  <div id="modal-condutor" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
-      <h3 class="font-bold text-lg text-slate-900" id="modal-condutor-titulo">Cadastrar Condutor</h3>
-      <form id="form-condutor" onsubmit="salvarCondutorSupabase(event)" class="space-y-3">
-        <input type="hidden" id="c-id"/>
+<div id="modal-condutor" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
+  <div class="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+    <h3 class="font-bold text-lg text-slate-900" id="modal-condutor-titulo">Cadastrar Condutor</h3>
+    <form id="form-condutor" onsubmit="salvarCondutorSupabase(event)" class="space-y-3">
+      <input type="hidden" id="c-id"/>
+      <div>
+        <label class="block text-xs font-semibold text-slate-600">Condutor (nome)</label>
+        <input type="text" id="c-nome" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
         <div>
-          <label class="block text-xs font-semibold text-slate-600">Nome Completo</label>
-          <input type="text" id="c-nome" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+          <label class="block text-xs font-semibold text-slate-600">Nº CNH</label>
+          <input type="text" id="c-cnh" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">Nº CNH</label>
-            <input type="text" id="c-cnh" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">Categoria</label>
-            <input type="text" id="c-cat" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Ex: AB"/>
-          </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Categoria</label>
+          <input type="text" id="c-cat" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Ex: AB"/>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">Validade CNH</label>
-            <input type="date" id="c-validade" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600">Função</label>
-            <input type="text" id="c-funcao" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
-          </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">EAR</label>
+          <select id="c-ear" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none bg-white">
+            <option value="Sim">Sim</option>
+            <option value="Não" selected>Não</option>
+          </select>
         </div>
-        <div class="flex justify-end space-x-2 pt-3 border-t">
-          <button type="button" onclick="closeCondutorModal()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg cursor-pointer">Cancelar</button>
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg cursor-pointer">Salvar</button>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Validade CNH</label>
+          <input type="date" id="c-validade" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
         </div>
-      </form>
-    </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Função</label>
+          <input type="text" id="c-funcao" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Autorizado desde</label>
+          <input type="date" id="c-autorizado-desde" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Status</label>
+          <select id="c-status" class="w-full border border-slate-300 rounded p-2 text-xs outline-none bg-white">
+            <option value="Ativo">Ativo</option>
+            <option value="Inativo">Inativo</option>
+            <option value="Bloqueado">Bloqueado</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Uso pessoal autorizado</label>
+          <select id="c-uso-pessoal" class="w-full border border-slate-300 rounded p-2 text-xs outline-none bg-white">
+            <option value="Sim">Sim</option>
+            <option value="Não" selected>Não</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">% do trajeto que lhe cabe</label>
+          <input type="number" id="c-porcentagem-trajeto" min="0" max="100" placeholder="Ex: 100" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600">Limite diário de trajeto (km)</label>
+          <input type="number" id="c-limite-diario" min="0" placeholder="Ex: 150" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+        </div>
+      </div>
+      <div class="flex justify-end space-x-2 pt-3 border-t">
+        <button type="button" onclick="closeCondutorModal()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg cursor-pointer">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg cursor-pointer">Salvar</button>
+      </div>
+    </form>
   </div>
-
+</div>
   <!-- MODAL: CADASTRAR ABASTECIMENTO -->
   <div id="modal-abastecimento" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
