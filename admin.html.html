@@ -1211,47 +1211,116 @@
     }
 
     // MODAIS CONDUTOR
-   async function salvarCondutorSupabase(e) {
+  // MODAIS CONDUTOR
+function openCondutorModal() {
+  const form = document.getElementById('form-condutor');
+  if (form) form.reset();
+
+  const idEl = document.getElementById('c-id');
+  if (idEl) idEl.value = '';
+
+  const titulo = document.getElementById('modal-condutor-titulo');
+  if (titulo) titulo.innerText = 'Cadastrar Condutor';
+
+  const modal = document.getElementById('modal-condutor');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeCondutorModal(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const modal = document.getElementById('modal-condutor');
+  if (modal) modal.classList.add('hidden');
+}
+
+function editCondutorModal(id) {
+  const c = condutores.find(item => item.id === id);
+  if (!c) return;
+
+  const setVal = (idEl, val) => {
+    const el = document.getElementById(idEl);
+    if (el) el.value = val !== undefined && val !== null ? val : '';
+  };
+
+  setVal('c-id', c.id);
+  setVal('c-nome', c.nome);
+  setVal('c-cnh', c.cnh);
+  setVal('c-cat', c.cat || 'AB');
+  setVal('c-ear', c.ear || 'Não');
+  setVal('c-validade', c.validade);
+  setVal('c-funcao', c.funcao);
+  setVal('c-autorizado-desde', c.autorizado_desde);
+  setVal('c-status', c.status || 'Ativo');
+  setVal('c-uso-pessoal', c.uso_pessoal || 'Não');
+
+  // Busca os valores do objeto do banco respeitando as chaves
+  setVal('c-porcentagem-trajeto', c.porcentagem_trajeto !== undefined ? c.porcentagem_trajeto : c.pct_trajeto);
+  setVal('c-limite-diario', c.limite_diario !== undefined ? c.limite_diario : c.limite_km);
+
+  const titulo = document.getElementById('modal-condutor-titulo');
+  if (titulo) titulo.innerText = 'Editar Condutor';
+
+  const modal = document.getElementById('modal-condutor');
+  if (modal) modal.classList.remove('hidden');
+}
+
+async function salvarCondutorSupabase(e) {
   if (e && e.preventDefault) e.preventDefault();
 
   try {
-    // Helper seguro para obter valor sem quebrar a execução caso o ID não exista no HTML
     const getVal = (id, defaultVal = '') => {
       const el = document.getElementById(id);
-      return el ? el.value : defaultVal;
+      return el ? el.value.trim() : defaultVal;
     };
 
     const id = getVal('c-id');
-    const pctVal = getVal('c-pct-trajeto');
-    const limiteVal = getVal('c-limite-km');
+    const pctVal = getVal('c-porcentagem-trajeto');
+    const limiteVal = getVal('c-limite-diario');
 
+    // Mapeia o payload com a tipagem exata para o Supabase
     const payload = {
       nome: getVal('c-nome'),
       cnh: getVal('c-cnh'),
-      cat: getVal('c-cat', 'B'),
-      validade: getVal('c-validade'),
-      funcao: getVal('c-funcao'),
+      cat: getVal('c-cat', 'AB'),
       ear: getVal('c-ear', 'Não'),
+      validade: getVal('c-validade') || null,
+      funcao: getVal('c-funcao'),
       autorizado_desde: getVal('c-autorizado-desde') || null,
       status: getVal('c-status', 'Ativo'),
       uso_pessoal: getVal('c-uso-pessoal', 'Não'),
-      pct_trajeto: pctVal !== '' ? parseFloat(pctVal) : null,
-      limite_km: limiteVal !== '' ? parseInt(limiteVal, 10) : null
+
+      // Mapeamento para o banco evitando strings vazias em colunas numéricas
+      porcentagem_trajeto: pctVal !== '' ? parseFloat(pctVal) : null,
+      limite_diario: limiteVal !== '' ? parseInt(limiteVal, 10) : null
     };
 
+    let resposta;
     if (id) {
-      await supabaseFetch(`condutores?id=eq.${id}`, { 
+      resposta = await supabaseFetch(`condutores?id=eq.${id}`, { 
         method: 'PATCH', 
         body: JSON.stringify(payload) 
       });
     } else {
-      await supabaseFetch('condutores', { 
+      resposta = await supabaseFetch('condutores', { 
         method: 'POST', 
         body: JSON.stringify(payload) 
       });
     }
 
-    // Fecha o modal e recarrega a lista
+    if (resposta === null) {
+      if (typeof mostrarAlerta === 'function') {
+        mostrarAlerta("Erro de permissão ou conexão ao salvar condutor no Supabase.", "erro");
+      } else {
+        alert("Erro ao salvar condutor no Supabase.");
+      }
+      return;
+    }
+
+    if (typeof mostrarAlerta === 'function') {
+      mostrarAlerta("✓ Condutor salvo com sucesso!", "sucesso");
+    }
+
+    // Fecha o modal e atualiza as tabelas/listas
     closeCondutorModal();
 
     if (typeof carregarDadosDoSupabase === 'function') {
@@ -1262,7 +1331,7 @@
 
   } catch (err) {
     console.error("Erro ao salvar condutor:", err);
-    alert("Ocorreu um erro ao salvar. Verifique os dados e o console (F12).");
+    closeCondutorModal();
   }
 }
     // MODAIS ABASTECIMENTO
