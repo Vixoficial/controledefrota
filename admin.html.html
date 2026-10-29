@@ -136,9 +136,9 @@
                   <th class="p-2 border-b">Veículo</th>
                   <th class="p-2 border-b">Tipo</th>
                   <th class="p-2 border-b text-right">KM/Ano</th>
-                  <th class="p-2 border-b text-right">Média km/l</th>
-                  <th class="p-2 border-b text-right">Gasto Mensal</th>
                   <th class="p-2 border-b text-right">Custo / KM</th>
+                  <th class="p-2 border-b text-right">Gasto Mensal</th>
+                  <th class="p-2 border-b text-right">Custo Total / KM</th>
                   <th class="p-2 border-b">Status / Pendência</th>
                 </tr>
               </thead>
@@ -164,7 +164,7 @@
                   <th class="p-2 border-b">Veículo</th>
                   <th class="p-2 border-b text-right">FIPE</th>
                   <th class="p-2 border-b text-right">KM/Ano</th>
-                  <th class="p-2 border-b text-right">km/l Ref.</th>
+                  <th class="p-2 border-b text-right">Custo por KM (R$)</th>
                   <th class="p-2 border-b text-right">Fixo Mensal</th>
                   <th class="p-2 border-b">Próx. Revisão</th>
                   <th class="p-2 border-b text-center">Ações</th>
@@ -223,14 +223,10 @@
               <label class="block text-[11px] font-semibold text-slate-600 mb-1">Mês / Ano Apuração:</label>
               <input type="month" id="apuracao-mes-ano" value="2027-01" onchange="renderApuracaoCondutorTable()" class="border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500"/>
             </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Preço Média Combustível (R$/L):</label>
-              <input type="number" step="0.01" id="apuracao-preco-combustivel" value="5.80" onchange="renderApuracaoCondutorTable()" class="border border-slate-300 rounded-lg p-1.5 text-xs outline-none w-28 focus:ring-2 focus:ring-blue-500" title="Preço de referência caso não existam abastecimentos no mês"/>
-            </div>
           </div>
           <div class="text-xs text-slate-500 bg-blue-50 p-2.5 rounded-lg border border-blue-100">
             <i data-lucide="info" class="w-4 h-4 inline mr-1 text-blue-600"></i>
-            O Custo/KM é vinculado ao <b>km/l Ref.</b> de cada veículo. A % do trajeto é individual por condutor.
+            O custo por KM vem do cadastro de cada veículo. KMs de trajeto acima do limite diário do condutor são somados ao KM Lazer.
           </div>
         </div>
 
@@ -467,8 +463,8 @@
             <input type="number" id="v-km-ano" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600">Consumo Ref. (km/l)</label>
-            <input type="number" step="0.1" id="v-kml" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+            <label class="block text-xs font-semibold text-slate-600">Custo por KM (R$)</label>
+            <input type="number" step="0.01" id="v-custo-km" placeholder="Ex: 0.85" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
           </div>
         </div>
         <div class="flex justify-end space-x-2 pt-3 border-t">
@@ -975,7 +971,7 @@
           <td class="p-2 font-semibold text-slate-800">${v.placa} — ${v.modelo}</td>
           <td class="p-2 text-slate-500">${v.tipo}</td>
           <td class="p-2 text-right font-mono">${(v.km_ano || 0).toLocaleString('pt-BR')} km</td>
-          <td class="p-2 text-right font-mono">${v.kml || '-'}</td>
+          <td class="p-2 text-right font-mono">R$ ${(v.custo_km || v.kml || 0).toFixed(2)}</td>
           <td class="p-2 text-right font-mono">R$ ${(v.gasto_mensal || 0).toFixed(2)}</td>
           <td class="p-2 text-right font-mono">R$ ${(v.custo_km || 0).toFixed(2)}</td>
           <td class="p-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${v.status === 'Ok' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${v.status || 'Ok'}</span></td>
@@ -991,7 +987,7 @@
           <td class="p-2 font-semibold text-slate-800">${v.placa} <br/><span class="text-[10px] text-slate-400">${v.modelo}</span></td>
           <td class="p-2 text-right font-mono">R$ ${(v.fipe || 0).toLocaleString('pt-BR')}</td>
           <td class="p-2 text-right font-mono">${(v.km_ano || 0).toLocaleString('pt-BR')} km</td>
-          <td class="p-2 text-right font-mono">${v.kml || '-'}</td>
+          <td class="p-2 text-right font-mono font-bold text-slate-800">R$ ${(v.custo_km || v.kml || 0).toFixed(2)}</td>
           <td class="p-2 text-right font-mono">R$ ${(v.fixo_mensal || 0).toFixed(2)}</td>
           <td class="p-2 text-slate-600">${v.prox_rev || 'N/A'}</td>
           <td class="p-2 text-center">
@@ -1179,11 +1175,16 @@
       if (!el) return;
 
       const inputMesAno = document.getElementById('apuracao-mes-ano')?.value || '2027-01';
-      const precoCombustivelPadrao = parseFloat(document.getElementById('apuracao-preco-combustivel')?.value) || 5.80;
 
       const [anoSel, mesNumSel] = inputMesAno.split('-');
+      const mesInt = parseInt(mesNumSel, 10);
+      const anoInt = parseInt(anoSel, 10);
+
       const mesesExt = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-      const rotuloMesAno = `${mesesExt[parseInt(mesNumSel, 10) - 1] || 'jan'}/${anoSel}`;
+      const rotuloMesAno = `${mesesExt[mesInt - 1] || 'jan'}/${anoSel}`;
+
+      // Número de dias no mês apurado para cálculo do limite de trajeto
+      const diasNoMes = new Date(anoInt, mesInt, 0).getDate();
 
       if (condutores.length === 0) {
         el.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-500 italic">Nenhum condutor cadastrado no banco de dados.</td></tr>`;
@@ -1192,15 +1193,13 @@
 
       const formatBRL = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-      // Calcula o preço médio do combustível no mês com base nos abastecimentos
-      const abastDoMes = abastecimentos.filter(a => a.data && a.data.startsWith(inputMesAno) && a.preco_un > 0);
-      const precoCombustivelMes = abastDoMes.length > 0 
-        ? abastDoMes.reduce((acc, curr) => acc + curr.preco_un, 0) / abastDoMes.length 
-        : precoCombustivelPadrao;
-
       el.innerHTML = condutores.map(c => {
         // Porcentagem cobrada do trajeto (default 100% caso não preenchido)
         const pctTrajeto = (c.porcentagem_trajeto ?? c.pct_trajeto ?? 100) / 100;
+
+        // Limite diário de trajeto e limite total mensal permitido
+        const limiteDiario = c.limite_diario ?? c.limite_km ?? 0;
+        const limiteMensalTrajeto = limiteDiario > 0 ? limiteDiario * diasNoMes : Infinity;
 
         // Filtra movimentações do condutor no mês selecionado
         const movsDoMes = historico.filter(h => {
@@ -1209,8 +1208,8 @@
           return dataMov.startsWith(inputMesAno);
         });
 
-        let kmTrajeto = 0;
-        let kmLazer = 0;
+        let kmTrajetoBruto = 0;
+        let kmLazerBruto = 0;
         let reembolsoTrajeto = 0;
         let reembolsoLazer = 0;
 
@@ -1218,23 +1217,44 @@
           const rodado = Math.max(0, (m.km_final || 0) - (m.km_inicial || 0));
           const fin = (m.finalidade || '').toLowerCase();
 
-          // Busca o veículo utilizado na movimentação para extrair o kml de referência
+          // Custo por KM direto do cadastro do veículo (custo_km ou kml)
           const veh = veiculos.find(v => `${v.placa} — ${v.modelo}` === m.veiculo || v.placa === m.veiculo);
-          const kmlRef = (veh && veh.kml > 0) ? veh.kml : 10; // Fallback para 10 km/l
-          const custoKmVeiculo = precoCombustivelMes / kmlRef;
+          const custoKmVeiculo = (veh && (veh.custo_km || veh.kml) > 0) ? (veh.custo_km || veh.kml) : 0.85;
 
           if (fin.includes('lazer') || fin.includes('pessoal')) {
-            kmLazer += rodado;
-            reembolsoLazer += rodado * custoKmVeiculo; // 100% lazer
+            kmLazerBruto += rodado;
+            reembolsoLazer += rodado * custoKmVeiculo;
           } else {
-            kmTrajeto += rodado;
-            reembolsoTrajeto += rodado * custoKmVeiculo * pctTrajeto; // % do condutor aplicada
+            kmTrajetoBruto += rodado;
+            reembolsoTrajeto += rodado * custoKmVeiculo * pctTrajeto;
           }
         });
 
+        // REGRA DE TETO/LIMITE DIÁRIO:
+        // O que ultrapassar o teto pré-definido de trajeto é adicionado ao KM Lazer
+        let kmTrajetoFinal = kmTrajetoBruto;
+        let kmLazerFinal = kmLazerBruto;
+
+        if (limiteMensalTrajeto !== Infinity && kmTrajetoBruto > limiteMensalTrajeto) {
+          const excessoKm = kmTrajetoBruto - limiteMensalTrajeto;
+          kmTrajetoFinal = limiteMensalTrajeto;
+          kmLazerFinal = kmLazerBruto + excessoKm;
+
+          // Re-calcula os reembolsos ajustando o excesso para tarifa integral de lazer (100%)
+          const custoMedioVeh = movsDoMes.length > 0 
+            ? movsDoMes.reduce((acc, m) => {
+                const veh = veiculos.find(v => `${v.placa} — ${v.modelo}` === m.veiculo || v.placa === m.veiculo);
+                return acc + ((veh && (veh.custo_km || veh.kml) > 0) ? (veh.custo_km || veh.kml) : 0.85);
+              }, 0) / movsDoMes.length
+            : 0.85;
+
+          reembolsoTrajeto = kmTrajetoFinal * custoMedioVeh * pctTrajeto;
+          reembolsoLazer = kmLazerFinal * custoMedioVeh;
+        }
+
         const totalReembolsar = reembolsoTrajeto + reembolsoLazer;
 
-        // Ressarcimentos (multas pagas pela empresa ou sinistros)
+        // Ressarcimentos (multas pagas pela empresa ou sinistros a ressarcir)
         const ressarcMultas = multas
           .filter(mu => mu.condutor === c.nome && mu.pago_por === 'Empresa' && mu.data?.startsWith(inputMesAno))
           .reduce((acc, curr) => acc + (curr.valor || 0), 0);
@@ -1250,11 +1270,11 @@
           <tr class="hover:bg-slate-800/80 transition border-b border-slate-800/60">
             <td class="p-3 border-r border-slate-800 text-left font-semibold text-white">
               ${c.nome}
-              <div class="text-[10px] text-slate-400 font-sans font-normal">% Trajeto: ${(pctTrajeto * 100).toFixed(0)}%</div>
+              <div class="text-[10px] text-slate-400 font-sans font-normal">% Trajeto: ${(pctTrajeto * 100).toFixed(0)}% ${limiteDiario > 0 ? `| Teto: ${limiteMensalTrajeto}km/mês` : ''}</div>
             </td>
             <td class="p-3 border-r border-slate-800 text-center text-slate-300 font-sans">${rotuloMesAno}</td>
-            <td class="p-3 border-r border-slate-800 text-right text-slate-300">${kmTrajeto.toLocaleString('pt-BR')}</td>
-            <td class="p-3 border-r border-slate-800 text-right text-slate-300">${kmLazer.toLocaleString('pt-BR')}</td>
+            <td class="p-3 border-r border-slate-800 text-right text-slate-300">${kmTrajetoFinal.toLocaleString('pt-BR')}</td>
+            <td class="p-3 border-r border-slate-800 text-right text-slate-300">${kmLazerFinal.toLocaleString('pt-BR')}</td>
             <td class="p-3 border-r border-slate-800 text-right text-slate-300">${formatBRL(reembolsoTrajeto)}</td>
             <td class="p-3 border-r border-slate-800 text-right text-slate-300">${formatBRL(reembolsoLazer)}</td>
             <td class="p-3 border-r border-slate-800 text-right font-bold text-amber-400 bg-slate-800/40">${formatBRL(totalReembolsar)}</td>
@@ -1317,7 +1337,7 @@
       document.getElementById('v-tipo').value = v.tipo || 'Automóvel';
       document.getElementById('v-fipe').value = v.fipe || 0;
       document.getElementById('v-km-ano').value = v.km_ano || 0;
-      document.getElementById('v-kml').value = v.kml || 0;
+      document.getElementById('v-custo-km').value = v.custo_km ?? v.kml ?? 0;
       document.getElementById('modal-veiculo-titulo').innerText = 'Editar Veículo';
       document.getElementById('modal-veiculo').classList.remove('hidden');
     }
@@ -1325,13 +1345,16 @@
     async function salvarVeiculoSupabase(e) {
       e.preventDefault();
       const id = document.getElementById('v-id').value;
+      const custoKm = parseFloat(document.getElementById('v-custo-km').value) || 0;
+
       const payload = {
         placa: document.getElementById('v-placa').value.toUpperCase(),
         modelo: document.getElementById('v-modelo').value,
         tipo: document.getElementById('v-tipo').value,
         fipe: parseFloat(document.getElementById('v-fipe').value) || 0,
         km_ano: parseInt(document.getElementById('v-km-ano').value) || 0,
-        kml: parseFloat(document.getElementById('v-kml').value) || 0,
+        custo_km: custoKm,
+        kml: custoKm,
         status: "Ok"
       };
 
