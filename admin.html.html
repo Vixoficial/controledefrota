@@ -226,7 +226,7 @@
           </div>
           <div class="text-xs text-slate-500 bg-blue-50 p-2.5 rounded-lg border border-blue-100">
             <i data-lucide="info" class="w-4 h-4 inline mr-1 text-blue-600"></i>
-            O custo por KM vem do cadastro de cada veículo. KMs de trajeto acima do limite diário do condutor são somados ao KM Lazer.
+            Toda baixa de trajeto (Casa - Trabalho) que exceder o limite diário por viagem tem seu excesso automaticamente transferido para KM Lazer.
           </div>
         </div>
 
@@ -1175,16 +1175,9 @@
       if (!el) return;
 
       const inputMesAno = document.getElementById('apuracao-mes-ano')?.value || '2027-01';
-
       const [anoSel, mesNumSel] = inputMesAno.split('-');
-      const mesInt = parseInt(mesNumSel, 10);
-      const anoInt = parseInt(anoSel, 10);
-
       const mesesExt = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-      const rotuloMesAno = `${mesesExt[mesInt - 1] || 'jan'}/${anoSel}`;
-
-      // Número de dias no mês apurado para cálculo do limite de trajeto
-      const diasNoMes = new Date(anoInt, mesInt, 0).getDate();
+      const rotuloMesAno = `${mesesExt[parseInt(mesNumSel, 10) - 1] || 'jan'}/${anoSel}`;
 
       if (condutores.length === 0) {
         el.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-500 italic">Nenhum condutor cadastrado no banco de dados.</td></tr>`;
@@ -1197,9 +1190,8 @@
         // Porcentagem cobrada do trajeto (default 100% caso não preenchido)
         const pctTrajeto = (c.porcentagem_trajeto ?? c.pct_trajeto ?? 100) / 100;
 
-        // Limite diário de trajeto e limite total mensal permitido
+        // Limite diário do condutor (se configurado)
         const limiteDiario = c.limite_diario ?? c.limite_km ?? 0;
-        const limiteMensalTrajeto = limiteDiario > 0 ? limiteDiario * diasNoMes : Infinity;
 
         // Filtra movimentações do condutor no mês selecionado
         const movsDoMes = historico.filter(h => {
@@ -1208,8 +1200,8 @@
           return dataMov.startsWith(inputMesAno);
         });
 
-        let kmTrajetoBruto = 0;
-        let kmLazerBruto = 0;
+        let kmTrajetoCalculado = 0;
+        let kmLazerCalculado = 0;
         let reembolsoTrajeto = 0;
         let reembolsoLazer = 0;
 
@@ -1217,40 +1209,35 @@
           const rodado = Math.max(0, (m.km_final || 0) - (m.km_inicial || 0));
           const fin = (m.finalidade || '').toLowerCase();
 
-          // Custo por KM direto do cadastro do veículo (custo_km ou kml)
+          // Custo por KM do veículo
           const veh = veiculos.find(v => `${v.placa} — ${v.modelo}` === m.veiculo || v.placa === m.veiculo);
           const custoKmVeiculo = (veh && (veh.custo_km || veh.kml) > 0) ? (veh.custo_km || veh.kml) : 0.85;
 
-          if (fin.includes('lazer') || fin.includes('pessoal')) {
-            kmLazerBruto += rodado;
-            reembolsoLazer += rodado * custoKmVeiculo;
+          const isTrajeto = fin.includes('trabalho') || fin.includes('trajeto') || fin.includes('casa - trabalho');
+
+          if (isTrajeto) {
+            // REGRA VIAGEM A VIAGEM:
+            // Se o rodado na baixa da viagem ultrapassar o limite diário pré-definido,
+            // o limite fica no trajeto e o que exceder vai AUTOMATICAMENTE para o lazer.
+            if (limiteDiario > 0 && rodado > limiteDiario) {
+              const kmTrajetoViagem = limiteDiario;
+              const kmLazerViagem = rodado - limiteDiario;
+
+              kmTrajetoCalculado += kmTrajetoViagem;
+              kmLazerCalculado += kmLazerViagem;
+
+              reembolsoTrajeto += kmTrajetoViagem * custoKmVeiculo * pctTrajeto;
+              reembolsoLazer += kmLazerViagem * custoKmVeiculo; // Excesso cobrado 100% como Lazer
+            } else {
+              kmTrajetoCalculado += rodado;
+              reembolsoTrajeto += rodado * custoKmVeiculo * pctTrajeto;
+            }
           } else {
-            kmTrajetoBruto += rodado;
-            reembolsoTrajeto += rodado * custoKmVeiculo * pctTrajeto;
+            // Se for Lazer ou Pessoal direto
+            kmLazerCalculado += rodado;
+            reembolsoLazer += rodado * custoKmVeiculo;
           }
         });
-
-        // REGRA DE TETO/LIMITE DIÁRIO:
-        // O que ultrapassar o teto pré-definido de trajeto é adicionado ao KM Lazer
-        let kmTrajetoFinal = kmTrajetoBruto;
-        let kmLazerFinal = kmLazerBruto;
-
-        if (limiteMensalTrajeto !== Infinity && kmTrajetoBruto > limiteMensalTrajeto) {
-          const excessoKm = kmTrajetoBruto - limiteMensalTrajeto;
-          kmTrajetoFinal = limiteMensalTrajeto;
-          kmLazerFinal = kmLazerBruto + excessoKm;
-
-          // Re-calcula os reembolsos ajustando o excesso para tarifa integral de lazer (100%)
-          const custoMedioVeh = movsDoMes.length > 0 
-            ? movsDoMes.reduce((acc, m) => {
-                const veh = veiculos.find(v => `${v.placa} — ${v.modelo}` === m.veiculo || v.placa === m.veiculo);
-                return acc + ((veh && (veh.custo_km || veh.kml) > 0) ? (veh.custo_km || veh.kml) : 0.85);
-              }, 0) / movsDoMes.length
-            : 0.85;
-
-          reembolsoTrajeto = kmTrajetoFinal * custoMedioVeh * pctTrajeto;
-          reembolsoLazer = kmLazerFinal * custoMedioVeh;
-        }
 
         const totalReembolsar = reembolsoTrajeto + reembolsoLazer;
 
@@ -1270,11 +1257,11 @@
           <tr class="hover:bg-slate-800/80 transition border-b border-slate-800/60">
             <td class="p-3 border-r border-slate-800 text-left font-semibold text-white">
               ${c.nome}
-              <div class="text-[10px] text-slate-400 font-sans font-normal">% Trajeto: ${(pctTrajeto * 100).toFixed(0)}% ${limiteDiario > 0 ? `| Teto: ${limiteMensalTrajeto}km/mês` : ''}</div>
+              <div class="text-[10px] text-slate-400 font-sans font-normal">% Trajeto: ${(pctTrajeto * 100).toFixed(0)}% ${limiteDiario > 0 ? `| Limite Viagem: ${limiteDiario}km` : ''}</div>
             </td>
             <td class="p-3 border-r border-slate-800 text-center text-slate-300 font-sans">${rotuloMesAno}</td>
-            <td class="p-3 border-r border-slate-800 text-right text-slate-300">${kmTrajetoFinal.toLocaleString('pt-BR')}</td>
-            <td class="p-3 border-r border-slate-800 text-right text-slate-300">${kmLazerFinal.toLocaleString('pt-BR')}</td>
+            <td class="p-3 border-r border-slate-800 text-right text-slate-300">${kmTrajetoCalculado.toLocaleString('pt-BR')}</td>
+            <td class="p-3 border-r border-slate-800 text-right text-slate-300">${kmLazerCalculado.toLocaleString('pt-BR')}</td>
             <td class="p-3 border-r border-slate-800 text-right text-slate-300">${formatBRL(reembolsoTrajeto)}</td>
             <td class="p-3 border-r border-slate-800 text-right text-slate-300">${formatBRL(reembolsoLazer)}</td>
             <td class="p-3 border-r border-slate-800 text-right font-bold text-amber-400 bg-slate-800/40">${formatBRL(totalReembolsar)}</td>
