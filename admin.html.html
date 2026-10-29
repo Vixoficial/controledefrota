@@ -73,6 +73,9 @@
           <button onclick="switchTab('relatorio-condutor')" id="btn-relatorio-condutor" class="nav-btn w-full flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
             <i data-lucide="user-check" class="w-4 h-4 mr-3"></i> Relatório do Condutor
           </button>
+          <button onclick="switchTab('apuracao-condutor')" id="btn-apuracao-condutor" class="nav-btn w-full flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
+            <i data-lucide="receipt" class="w-4 h-4 mr-3"></i> Apuração Uso Pessoal
+          </button>
           <button onclick="switchTab('apuracao-veiculo')" id="btn-apuracao-veiculo" class="nav-btn w-full flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer">
             <i data-lucide="calculator" class="w-4 h-4 mr-3"></i> Apuração por Veículo
           </button>
@@ -212,6 +215,48 @@
         </div>
       </section>
 
+      <!-- TAB: APURAÇÃO USO PESSOAL (CONDUTORES) -->
+      <section id="tab-apuracao-condutor" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-wrap gap-4 items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Mês / Ano Apuração:</label>
+              <input type="month" id="apuracao-mes-ano" value="2027-01" onchange="renderApuracaoCondutorTable()" class="border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500"/>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Custo Médio / KM (R$):</label>
+              <input type="number" step="0.01" id="apuracao-custo-km" value="0.85" onchange="renderApuracaoCondutorTable()" class="border border-slate-300 rounded-lg p-1.5 text-xs outline-none w-28 focus:ring-2 focus:ring-blue-500"/>
+            </div>
+          </div>
+          <div class="text-xs text-slate-500 bg-blue-50 p-2.5 rounded-lg border border-blue-100">
+            <i data-lucide="info" class="w-4 h-4 inline mr-1 text-blue-600"></i>
+            A % aplicada no <b>KM Trajeto</b> é baseada no cadastro individual do condutor.
+          </div>
+        </div>
+
+        <div class="bg-slate-900 rounded-xl shadow-lg overflow-hidden border border-slate-800">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-800 text-slate-200 uppercase font-bold text-[11px] border-b border-slate-700">
+                <tr>
+                  <th class="p-3 border-r border-slate-700">Condutor</th>
+                  <th class="p-3 border-r border-slate-700 text-center">Mês</th>
+                  <th class="p-3 border-r border-slate-700 text-right">KM trajeto</th>
+                  <th class="p-3 border-r border-slate-700 text-right">KM lazer</th>
+                  <th class="p-3 border-r border-slate-700 text-right">Reembolso trajeto</th>
+                  <th class="p-3 border-r border-slate-700 text-right">Reembolso lazer</th>
+                  <th class="p-3 border-r border-slate-700 text-right bg-slate-750">TOTAL A REEMBOLSAR</th>
+                  <th class="p-3 border-r border-slate-700 text-right">Ressarcimentos</th>
+                  <th class="p-3 text-right bg-emerald-900/40 text-emerald-300">TOTAL GERAL</th>
+                </tr>
+              </thead>
+              <tbody id="tb-apuracao-condutor-corpo" class="divide-y divide-slate-800 bg-slate-900 text-slate-200 font-mono text-xs">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- TAB: APURAÇÃO MENSAL POR VEÍCULO -->
       <section id="tab-apuracao-veiculo" class="tab-content hidden space-y-6">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex gap-4">
@@ -269,6 +314,7 @@
           </table>
         </div>
       </section>
+
       <!-- TAB: MANUTENÇÕES -->
       <section id="tab-manutencao" class="tab-content hidden space-y-6">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex justify-between items-center">
@@ -296,6 +342,7 @@
           </table>
         </div>
       </section> 
+
       <!-- TAB: MULTAS & INFRAÇÕES -->
       <section id="tab-multas" class="tab-content hidden space-y-6">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex justify-between items-center">
@@ -433,80 +480,81 @@
   </div>
 
   <!-- MODAL: CADASTRAR CONDUTOR -->
-<div id="modal-condutor" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
-  <div class="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-    <h3 class="font-bold text-lg text-slate-900" id="modal-condutor-titulo">Cadastrar Condutor</h3>
-    <form id="form-condutor" onsubmit="salvarCondutorSupabase(event)" class="space-y-3">
-      <input type="hidden" id="c-id"/>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600">Condutor (nome)</label>
-        <input type="text" id="c-nome" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
-      </div>
-      <div class="grid grid-cols-3 gap-3">
+  <div id="modal-condutor" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <h3 class="font-bold text-lg text-slate-900" id="modal-condutor-titulo">Cadastrar Condutor</h3>
+      <form id="form-condutor" onsubmit="salvarCondutorSupabase(event)" class="space-y-3">
+        <input type="hidden" id="c-id"/>
         <div>
-          <label class="block text-xs font-semibold text-slate-600">Nº CNH</label>
-          <input type="text" id="c-cnh" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+          <label class="block text-xs font-semibold text-slate-600">Condutor (nome)</label>
+          <input type="text" id="c-nome" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">Categoria</label>
-          <input type="text" id="c-cat" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Ex: AB"/>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Nº CNH</label>
+            <input type="text" id="c-cnh" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Categoria</label>
+            <input type="text" id="c-cat" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none" placeholder="Ex: AB"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">EAR</label>
+            <select id="c-ear" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none bg-white">
+              <option value="Sim">Sim</option>
+              <option value="Não" selected>Não</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">EAR</label>
-          <select id="c-ear" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none bg-white">
-            <option value="Sim">Sim</option>
-            <option value="Não" selected>Não</option>
-          </select>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Validade CNH</label>
+            <input type="date" id="c-validade" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Função</label>
+            <input type="text" id="c-funcao" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Autorizado desde</label>
+            <input type="date" id="c-autorizado-desde" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+          </div>
         </div>
-      </div>
-      <div class="grid grid-cols-3 gap-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">Validade CNH</label>
-          <input type="date" id="c-validade" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Status</label>
+            <select id="c-status" class="w-full border border-slate-300 rounded p-2 text-xs outline-none bg-white">
+              <option value="Ativo">Ativo</option>
+              <option value="Inativo">Inativo</option>
+              <option value="Bloqueado">Bloqueado</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Uso pessoal autorizado</label>
+            <select id="c-uso-pessoal" class="w-full border border-slate-300 rounded p-2 text-xs outline-none bg-white">
+              <option value="Sim">Sim</option>
+              <option value="Não" selected>Não</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">Função</label>
-          <input type="text" id="c-funcao" required class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">% do trajeto que lhe cabe</label>
+            <input type="number" id="c-porcentagem-trajeto" min="0" max="100" placeholder="Ex: 100" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600">Limite diário de trajeto (km)</label>
+            <input type="number" id="c-limite-diario" min="0" placeholder="Ex: 150" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+          </div>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">Autorizado desde</label>
-          <input type="date" id="c-autorizado-desde" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
+        <div class="flex justify-end space-x-2 pt-3 border-t">
+          <button type="button" onclick="closeCondutorModal()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg cursor-pointer">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg cursor-pointer">Salvar</button>
         </div>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">Status</label>
-          <select id="c-status" class="w-full border border-slate-300 rounded p-2 text-xs outline-none bg-white">
-            <option value="Ativo">Ativo</option>
-            <option value="Inativo">Inativo</option>
-            <option value="Bloqueado">Bloqueado</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">Uso pessoal autorizado</label>
-          <select id="c-uso-pessoal" class="w-full border border-slate-300 rounded p-2 text-xs outline-none bg-white">
-            <option value="Sim">Sim</option>
-            <option value="Não" selected>Não</option>
-          </select>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">% do trajeto que lhe cabe</label>
-          <input type="number" id="c-porcentagem-trajeto" min="0" max="100" placeholder="Ex: 100" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600">Limite diário de trajeto (km)</label>
-          <input type="number" id="c-limite-diario" min="0" placeholder="Ex: 150" class="w-full border border-slate-300 rounded p-2 text-xs outline-none"/>
-        </div>
-      </div>
-      <div class="flex justify-end space-x-2 pt-3 border-t">
-        <button type="button" onclick="closeCondutorModal()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg cursor-pointer">Cancelar</button>
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg cursor-pointer">Salvar</button>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
-</div>
+
   <!-- MODAL: CADASTRAR ABASTECIMENTO -->
   <div id="modal-abastecimento" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden p-4">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
@@ -902,6 +950,7 @@
       renderHistoricoTable();
       renderRelatorioCondutor();
       renderApuracaoVeiculoTable();
+      renderApuracaoCondutorTable();
       if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
@@ -1124,6 +1173,86 @@
       `;
     }
 
+    // TABELA APURAÇÃO CONDUTOR (USO PESSOAL / REEMBOLSO)
+    function renderApuracaoCondutorTable() {
+      const el = document.getElementById('tb-apuracao-condutor-corpo');
+      if (!el) return;
+
+      const inputMesAno = document.getElementById('apuracao-mes-ano')?.value || '2027-01';
+      const custoKm = parseFloat(document.getElementById('apuracao-custo-km')?.value) || 0.85;
+
+      const [anoSel, mesNumSel] = inputMesAno.split('-');
+      const mesesExt = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+      const rotuloMesAno = `${mesesExt[parseInt(mesNumSel, 10) - 1] || 'jan'}/${anoSel}`;
+
+      if (condutores.length === 0) {
+        el.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-500 italic">Nenhum condutor cadastrado no banco de dados.</td></tr>`;
+        return;
+      }
+
+      const formatBRL = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      el.innerHTML = condutores.map(c => {
+        // Porcentagem cobrada do trajeto (default 100% caso não preenchido)
+        const pctTrajeto = (c.porcentagem_trajeto ?? c.pct_trajeto ?? 100) / 100;
+
+        // Filtra movimentações do condutor no mês selecionado
+        const movsDoMes = historico.filter(h => {
+          if (h.condutor !== c.nome) return false;
+          const dataMov = h.data_saida || h.created_at || '';
+          return dataMov.startsWith(inputMesAno);
+        });
+
+        // Apuração dos KMs por finalidade
+        let kmTrajeto = 0;
+        let kmLazer = 0;
+
+        movsDoMes.forEach(m => {
+          const rodado = Math.max(0, (m.km_final || 0) - (m.km_inicial || 0));
+          const fin = (m.finalidade || '').toLowerCase();
+          if (fin.includes('lazer') || fin.includes('pessoal')) {
+            kmLazer += rodado;
+          } else {
+            kmTrajeto += rodado;
+          }
+        });
+
+        // Cálculos financeiros com a % do condutor
+        const reembolsoTrajeto = kmTrajeto * custoKm * pctTrajeto;
+        const reembolsoLazer = kmLazer * custoKm; // 100% cobrado para lazer
+        const totalReembolsar = reembolsoTrajeto + reembolsoLazer;
+
+        // Ressarcimentos (multas ou sinistros a pagar/ressarcir)
+        const ressarcMultas = multas
+          .filter(mu => mu.condutor === c.nome && mu.pago_por === 'Empresa' && mu.data?.startsWith(inputMesAno))
+          .reduce((acc, curr) => acc + (curr.valor || 0), 0);
+
+        const ressarcSinistros = sinistros
+          .filter(s => s.condutor === c.nome && s.data?.startsWith(inputMesAno))
+          .reduce((acc, curr) => acc + (curr.ressarcir || 0), 0);
+
+        const ressarcimentos = ressarcMultas + ressarcSinistros;
+        const totalGeral = totalReembolsar + ressarcimentos;
+
+        return `
+          <tr class="hover:bg-slate-800/80 transition border-b border-slate-800/60">
+            <td class="p-3 border-r border-slate-800 text-left font-semibold text-white">
+              ${c.nome}
+              <div class="text-[10px] text-slate-400 font-sans font-normal">% Trajeto: ${(pctTrajeto * 100).toFixed(0)}%</div>
+            </td>
+            <td class="p-3 border-r border-slate-800 text-center text-slate-300 font-sans">${rotuloMesAno}</td>
+            <td class="p-3 border-r border-slate-800 text-right text-slate-300">${kmTrajeto.toLocaleString('pt-BR')}</td>
+            <td class="p-3 border-r border-slate-800 text-right text-slate-300">${kmLazer.toLocaleString('pt-BR')}</td>
+            <td class="p-3 border-r border-slate-800 text-right text-slate-300">${formatBRL(reembolsoTrajeto)}</td>
+            <td class="p-3 border-r border-slate-800 text-right text-slate-300">${formatBRL(reembolsoLazer)}</td>
+            <td class="p-3 border-r border-slate-800 text-right font-bold text-amber-400 bg-slate-800/40">${formatBRL(totalReembolsar)}</td>
+            <td class="p-3 border-r border-slate-800 text-right text-slate-300">${formatBRL(ressarcimentos)}</td>
+            <td class="p-3 text-right font-bold text-emerald-400 bg-emerald-950/30">${formatBRL(totalGeral)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
     function renderApuracaoVeiculoTable() {
       const el = document.getElementById('tb-apuracao-veiculo-corpo');
       if (!el) return;
@@ -1211,158 +1340,147 @@
     }
 
     // MODAIS CONDUTOR
-function openCondutorModal() {
-  const form = document.getElementById('form-condutor');
-  if (form) form.reset();
+    function openCondutorModal() {
+      const form = document.getElementById('form-condutor');
+      if (form) form.reset();
 
-  const idEl = document.getElementById('c-id');
-  if (idEl) idEl.value = '';
+      const idEl = document.getElementById('c-id');
+      if (idEl) idEl.value = '';
 
-  const titulo = document.getElementById('modal-condutor-titulo');
-  if (titulo) titulo.innerText = 'Cadastrar Condutor';
+      const titulo = document.getElementById('modal-condutor-titulo');
+      if (titulo) titulo.innerText = 'Cadastrar Condutor';
 
-  const modal = document.getElementById('modal-condutor');
-  if (modal) modal.classList.remove('hidden');
-}
-
-function closeCondutorModal(e) {
-  if (e && e.preventDefault) e.preventDefault();
-
-  const modal = document.getElementById('modal-condutor');
-  if (modal) modal.classList.add('hidden');
-}
-
-function editCondutorModal(id) {
-  const c = condutores.find(item => item.id === id);
-  if (!c) return;
-
-  const setVal = (idEl, val) => {
-    const el = document.getElementById(idEl);
-    if (el) el.value = val !== undefined && val !== null ? val : '';
-  };
-
-  setVal('c-id', c.id);
-  setVal('c-nome', c.nome);
-  setVal('c-cnh', c.cnh);
-  setVal('c-cat', c.cat || 'AB');
-  setVal('c-ear', c.ear || 'Não');
-  setVal('c-validade', c.validade);
-  setVal('c-funcao', c.funcao);
-  setVal('c-autorizado-desde', c.autorizado_desde);
-  setVal('c-status', c.status || 'Ativo');
-  setVal('c-uso-pessoal', c.uso_pessoal || 'Não');
-
-  // Recupera porcentagem e limite tanto de 'porcentagem_trajeto'/'limite_diario' quanto de 'pct_trajeto'/'limite_km'
-  setVal('c-porcentagem-trajeto', c.porcentagem_trajeto ?? c.pct_trajeto ?? '');
-  setVal('c-limite-diario', c.limite_diario ?? c.limite_km ?? '');
-
-  const titulo = document.getElementById('modal-condutor-titulo');
-  if (titulo) titulo.innerText = 'Editar Condutor';
-
-  const modal = document.getElementById('modal-condutor');
-  if (modal) modal.classList.remove('hidden');
-}
-
-async function salvarCondutorSupabase(e) {
-  if (e && e.preventDefault) e.preventDefault();
-
-  try {
-    const getVal = (id, defaultVal = '') => {
-      const el = document.getElementById(id);
-      return el ? el.value.trim() : defaultVal;
-    };
-
-    const id = getVal('c-id');
-    const pctVal = getVal('c-porcentagem-trajeto');
-    const limiteVal = getVal('c-limite-diario');
-
-    const pctNum = pctVal !== '' ? parseFloat(pctVal) : null;
-    const limiteNum = limiteVal !== '' ? parseInt(limiteVal, 10) : null;
-
-    // Payload com mapeamento para compatibilidade de colunas no banco
-    const payload = {
-      nome: getVal('c-nome'),
-      cnh: getVal('c-cnh'),
-      cat: getVal('c-cat', 'AB'),
-      ear: getVal('c-ear', 'Não'),
-      validade: getVal('c-validade') || null,
-      funcao: getVal('c-funcao'),
-      autorizado_desde: getVal('c-autorizado-desde') || null,
-      status: getVal('c-status', 'Ativo'),
-      uso_pessoal: getVal('c-uso-pessoal', 'Não'),
-      porcentagem_trajeto: pctNum,
-      limite_diario: limiteNum
-    };
-
-    let resposta;
-    if (id) {
-      resposta = await supabaseFetch(`condutores?id=eq.${id}`, { 
-        method: 'PATCH', 
-        body: JSON.stringify(payload) 
-      });
-    } else {
-      resposta = await supabaseFetch('condutores', { 
-        method: 'POST', 
-        body: JSON.stringify(payload) 
-      });
+      const modal = document.getElementById('modal-condutor');
+      if (modal) modal.classList.remove('hidden');
     }
 
-    // Se falhou por incompatibilidade do nome da coluna porcentagem_trajeto, tenta com pct_trajeto
-    if (resposta === null) {
-      delete payload.porcentagem_trajeto;
-      delete payload.limite_diario;
-      payload.pct_trajeto = pctNum;
-      payload.limite_km = limiteNum;
+    function closeCondutorModal(e) {
+      if (e && e.preventDefault) e.preventDefault();
 
-      if (id) {
-        resposta = await supabaseFetch(`condutores?id=eq.${id}`, { 
-          method: 'PATCH', 
-          body: JSON.stringify(payload) 
-        });
-      } else {
-        resposta = await supabaseFetch('condutores', { 
-          method: 'POST', 
-          body: JSON.stringify(payload) 
-        });
+      const modal = document.getElementById('modal-condutor');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function editCondutorModal(id) {
+      const c = condutores.find(item => item.id === id);
+      if (!c) return;
+
+      const setVal = (idEl, val) => {
+        const el = document.getElementById(idEl);
+        if (el) el.value = val !== undefined && val !== null ? val : '';
+      };
+
+      setVal('c-id', c.id);
+      setVal('c-nome', c.nome);
+      setVal('c-cnh', c.cnh);
+      setVal('c-cat', c.cat || 'AB');
+      setVal('c-ear', c.ear || 'Não');
+      setVal('c-validade', c.validade);
+      setVal('c-funcao', c.funcao);
+      setVal('c-autorizado-desde', c.autorizado_desde);
+      setVal('c-status', c.status || 'Ativo');
+      setVal('c-uso-pessoal', c.uso_pessoal || 'Não');
+
+      setVal('c-porcentagem-trajeto', c.porcentagem_trajeto ?? c.pct_trajeto ?? '');
+      setVal('c-limite-diario', c.limite_diario ?? c.limite_km ?? '');
+
+      const titulo = document.getElementById('modal-condutor-titulo');
+      if (titulo) titulo.innerText = 'Editar Condutor';
+
+      const modal = document.getElementById('modal-condutor');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    async function salvarCondutorSupabase(e) {
+      if (e && e.preventDefault) e.preventDefault();
+
+      try {
+        const getVal = (id, defaultVal = '') => {
+          const el = document.getElementById(id);
+          return el ? el.value.trim() : defaultVal;
+        };
+
+        const id = getVal('c-id');
+        const pctVal = getVal('c-porcentagem-trajeto');
+        const limiteVal = getVal('c-limite-diario');
+
+        const pctNum = pctVal !== '' ? parseFloat(pctVal) : null;
+        const limiteNum = limiteVal !== '' ? parseInt(limiteVal, 10) : null;
+
+        const payload = {
+          nome: getVal('c-nome'),
+          cnh: getVal('c-cnh'),
+          cat: getVal('c-cat', 'AB'),
+          ear: getVal('c-ear', 'Não'),
+          validade: getVal('c-validade') || null,
+          funcao: getVal('c-funcao'),
+          autorizado_desde: getVal('c-autorizado-desde') || null,
+          status: getVal('c-status', 'Ativo'),
+          uso_pessoal: getVal('c-uso-pessoal', 'Não'),
+          porcentagem_trajeto: pctNum,
+          limite_diario: limiteNum
+        };
+
+        let resposta;
+        if (id) {
+          resposta = await supabaseFetch(`condutores?id=eq.${id}`, { 
+            method: 'PATCH', 
+            body: JSON.stringify(payload) 
+          });
+        } else {
+          resposta = await supabaseFetch('condutores', { 
+            method: 'POST', 
+            body: JSON.stringify(payload) 
+          });
+        }
+
+        if (resposta === null) {
+          delete payload.porcentagem_trajeto;
+          delete payload.limite_diario;
+          payload.pct_trajeto = pctNum;
+          payload.limite_km = limiteNum;
+
+          if (id) {
+            resposta = await supabaseFetch(`condutores?id=eq.${id}`, { 
+              method: 'PATCH', 
+              body: JSON.stringify(payload) 
+            });
+          } else {
+            resposta = await supabaseFetch('condutores', { 
+              method: 'POST', 
+              body: JSON.stringify(payload) 
+            });
+          }
+        }
+
+        closeCondutorModal();
+        await recarregarDadosGerais();
+
+      } catch (err) {
+        console.error("Erro ao salvar condutor:", err);
+        closeCondutorModal();
       }
     }
 
-    if (typeof mostrarAlerta === 'function') {
-      mostrarAlerta("✓ Operação realizada com sucesso no Supabase!", "sucesso");
-    }
-
-    closeCondutorModal();
-    await recarregarDadosGerais();
-
-  } catch (err) {
-    console.error("Erro ao salvar condutor:", err);
-    closeCondutorModal();
-  }
-}
-
-async function excluirCondutorSupabase(id) {
-  if (!id) return;
-  
-  if (confirm('Deseja realmente excluir este condutor do Supabase?')) {
-    try {
-      await supabaseFetch(`condutores?id=eq.${id}`, { method: 'DELETE' });
-      if (typeof mostrarAlerta === 'function') {
-        mostrarAlerta("✓ Condutor excluído com sucesso!", "sucesso");
+    async function excluirCondutorSupabase(id) {
+      if (!id) return;
+      
+      if (confirm('Deseja realmente excluir este condutor do Supabase?')) {
+        try {
+          await supabaseFetch(`condutores?id=eq.${id}`, { method: 'DELETE' });
+          await recarregarDadosGerais();
+        } catch (err) {
+          console.error("Erro ao excluir condutor:", err);
+        }
       }
-      await recarregarDadosGerais();
-    } catch (err) {
-      console.error("Erro ao excluir condutor:", err);
     }
-  }
-}
 
-async function recarregarDadosGerais() {
-  if (typeof carregarDados === 'function') {
-    await carregarDados();
-  } else if (typeof carregarDadosDoSupabase === 'function') {
-    await carregarDadosDoSupabase();
-  }
-}
+    async function recarregarDadosGerais() {
+      if (typeof carregarDadosDoSupabase === 'function') {
+        await carregarDadosDoSupabase();
+      }
+    }
+
     // MODAIS ABASTECIMENTO
     function openAbastecimentoModal() {
       const form = document.getElementById('form-abastecimento');
