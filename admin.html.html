@@ -224,13 +224,13 @@
               <input type="month" id="apuracao-mes-ano" value="2027-01" onchange="renderApuracaoCondutorTable()" class="border border-slate-300 rounded-lg p-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500"/>
             </div>
             <div>
-              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Custo Médio / KM (R$):</label>
-              <input type="number" step="0.01" id="apuracao-custo-km" value="0.85" onchange="renderApuracaoCondutorTable()" class="border border-slate-300 rounded-lg p-1.5 text-xs outline-none w-28 focus:ring-2 focus:ring-blue-500"/>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Preço Média Combustível (R$/L):</label>
+              <input type="number" step="0.01" id="apuracao-preco-combustivel" value="5.80" onchange="renderApuracaoCondutorTable()" class="border border-slate-300 rounded-lg p-1.5 text-xs outline-none w-28 focus:ring-2 focus:ring-blue-500" title="Preço de referência caso não existam abastecimentos no mês"/>
             </div>
           </div>
           <div class="text-xs text-slate-500 bg-blue-50 p-2.5 rounded-lg border border-blue-100">
             <i data-lucide="info" class="w-4 h-4 inline mr-1 text-blue-600"></i>
-            A % aplicada no <b>KM Trajeto</b> é baseada no cadastro individual do condutor.
+            O Custo/KM é vinculado ao <b>km/l Ref.</b> de cada veículo. A % do trajeto é individual por condutor.
           </div>
         </div>
 
@@ -1179,7 +1179,7 @@
       if (!el) return;
 
       const inputMesAno = document.getElementById('apuracao-mes-ano')?.value || '2027-01';
-      const custoKm = parseFloat(document.getElementById('apuracao-custo-km')?.value) || 0.85;
+      const precoCombustivelPadrao = parseFloat(document.getElementById('apuracao-preco-combustivel')?.value) || 5.80;
 
       const [anoSel, mesNumSel] = inputMesAno.split('-');
       const mesesExt = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
@@ -1192,6 +1192,12 @@
 
       const formatBRL = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+      // Calcula o preço médio do combustível no mês com base nos abastecimentos
+      const abastDoMes = abastecimentos.filter(a => a.data && a.data.startsWith(inputMesAno) && a.preco_un > 0);
+      const precoCombustivelMes = abastDoMes.length > 0 
+        ? abastDoMes.reduce((acc, curr) => acc + curr.preco_un, 0) / abastDoMes.length 
+        : precoCombustivelPadrao;
+
       el.innerHTML = condutores.map(c => {
         // Porcentagem cobrada do trajeto (default 100% caso não preenchido)
         const pctTrajeto = (c.porcentagem_trajeto ?? c.pct_trajeto ?? 100) / 100;
@@ -1203,26 +1209,32 @@
           return dataMov.startsWith(inputMesAno);
         });
 
-        // Apuração dos KMs por finalidade
         let kmTrajeto = 0;
         let kmLazer = 0;
+        let reembolsoTrajeto = 0;
+        let reembolsoLazer = 0;
 
         movsDoMes.forEach(m => {
           const rodado = Math.max(0, (m.km_final || 0) - (m.km_inicial || 0));
           const fin = (m.finalidade || '').toLowerCase();
+
+          // Busca o veículo utilizado na movimentação para extrair o kml de referência
+          const veh = veiculos.find(v => `${v.placa} — ${v.modelo}` === m.veiculo || v.placa === m.veiculo);
+          const kmlRef = (veh && veh.kml > 0) ? veh.kml : 10; // Fallback para 10 km/l
+          const custoKmVeiculo = precoCombustivelMes / kmlRef;
+
           if (fin.includes('lazer') || fin.includes('pessoal')) {
             kmLazer += rodado;
+            reembolsoLazer += rodado * custoKmVeiculo; // 100% lazer
           } else {
             kmTrajeto += rodado;
+            reembolsoTrajeto += rodado * custoKmVeiculo * pctTrajeto; // % do condutor aplicada
           }
         });
 
-        // Cálculos financeiros com a % do condutor
-        const reembolsoTrajeto = kmTrajeto * custoKm * pctTrajeto;
-        const reembolsoLazer = kmLazer * custoKm; // 100% cobrado para lazer
         const totalReembolsar = reembolsoTrajeto + reembolsoLazer;
 
-        // Ressarcimentos (multas ou sinistros a pagar/ressarcir)
+        // Ressarcimentos (multas pagas pela empresa ou sinistros)
         const ressarcMultas = multas
           .filter(mu => mu.condutor === c.nome && mu.pago_por === 'Empresa' && mu.data?.startsWith(inputMesAno))
           .reduce((acc, curr) => acc + (curr.valor || 0), 0);
